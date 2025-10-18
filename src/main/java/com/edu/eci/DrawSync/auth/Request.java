@@ -2,7 +2,6 @@ package com.edu.eci.DrawSync.auth;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 @Component
@@ -17,9 +16,6 @@ public class Request {
     @Value("${client.secret}")
     private String clientSecret;
 
-    
-
-    private MultiValueMap<String,String> body;
 
     private final RestTemplate restTemplate;
 
