@@ -1,0 +1,17 @@
+{"properties": [
+  {
+    "name": "client.secret",
+    "type": "java.lang.String",
+    "description": "A description for 'client.secret'"
+  },
+  {
+    "name": "base.url",
+    "type": "java.lang.String",
+    "description": "A description for 'base.url'"
+  },
+  {
+    "name": "client.id",
+    "type": "java.lang.String",
+    "description": "A description for 'client.id'"
+  }
+]}
