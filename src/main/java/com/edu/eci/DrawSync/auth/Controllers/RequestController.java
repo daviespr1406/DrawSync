@@ -1,6 +1,9 @@
 package com.edu.eci.DrawSync.auth.Controllers;
 
 import com.edu.eci.DrawSync.auth.Services.RequestService;
+
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +22,9 @@ public class RequestController {
     @GetMapping("/")
     public ResponseEntity<?> getTokenFromCognito(){
         if (requestService.getTokenFromCognito() == null) return ResponseEntity.internalServerError().body("Error retrieving token");
-        return ResponseEntity.ok(requestService.getTokenFromCognito());
+        return ResponseEntity.ok(Map.of(
+            "message","token received correctly",
+            "response", requestService.getTokenFromCognito()
+        ));
     }
 }

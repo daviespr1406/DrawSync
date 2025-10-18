@@ -3,13 +3,13 @@ package com.edu.eci.DrawSync.auth.Services;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import com.edu.eci.DrawSync.auth.Request;
+import com.edu.eci.DrawSync.auth.model.Request;
+import com.edu.eci.DrawSync.auth.model.DTO.Response.ResponseToken;
 
 @Service
 public class RequestService {
@@ -20,7 +20,7 @@ public class RequestService {
         this.request = request;
     }
 
-    public ResponseEntity<String> getTokenFromCognito(){
+    public ResponseToken getTokenFromCognito(){
 
         RestTemplate restTemplate = request.getRestTemplate();
         String clientId = request.getClientId();
@@ -40,8 +40,8 @@ public class RequestService {
 
         HttpEntity< MultiValueMap<String,String>> request = new HttpEntity<MultiValueMap<String,String>>(body, headers);
 
-        System.out.println("El request es "+ request);
-        ResponseEntity<String> response = restTemplate.postForEntity(baseUrl, request, String.class);
+       ResponseToken response = restTemplate.postForEntity(baseUrl, request, ResponseToken.class).getBody();
+        
 
         return response;
     }
