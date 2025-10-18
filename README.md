@@ -1,4 +1,4 @@
-# DrawSync
+# 🎨​ DrawSync
 
 **Autores:**  
 David Espinosa (daviespr1406)
@@ -106,4 +106,67 @@ http://localhost:8080
 - Despliegue CI/CD con GitHub Actions y AWS CodePipeline  
 
 ---
+
+## Costes estimados del proyecto
+
+### **a) Coste de Infraestructura (AWS)**
+
+1. **S3 + CloudFront (Frontend)**
+   - **S3**: Es un servicio para guardar archivos como imágenes y datos. Costo mensual estimado: **$1.15** por 50 GB.
+   - **CloudFront**: Ayuda a distribuir estos archivos rápidamente a los usuarios. Costo mensual estimado: **$8.50** por 100 GB de datos transferidos.
+
+2. **ALB (Application Load Balancer)**
+   - **ALB**: Es un servicio que distribuye el tráfico entre servidores para que la aplicación funcione sin problemas. Costo estimado: **$32.8**/mes.
+
+3. **Backend Real-time + REST (ECS/Fargate)**
+   - **Fargate**: Ejecuta la parte del servidor que gestiona las partidas y la comunicación entre jugadores. Costo estimado para 2 tareas 24/7: **$35.55**/mes.
+
+4. **ElastiCache (Redis)**
+   - **Redis**: Ayuda a almacenar datos importantes (como el progreso de las partidas) de forma rápida. Costo estimado: **$15–100**/mes, dependiendo del tamaño del servicio.
+
+5. **Base de Datos (DocumentDB / MongoDB Atlas)**
+   - **DocumentDB** o **MongoDB Atlas**: Son servicios de bases de datos para almacenar usuarios y estadísticas. Costo estimado: **$0–200+**/mes.
+
+6. **IA (SageMaker o API externa)**
+   - **IA**: Ayuda a que el sistema reconozca dibujos. Costo estimado: **$0–100+**/mes dependiendo del servicio.
+
+7. **Autenticación (Amazon Cognito)**
+   - **Cognito**: Gestiona el registro e inicio de sesión de los usuarios. Costo estimado: **$0 hasta 10k usuarios activos** al mes (gratis), luego alrededor de **$0.01–$0.015** por usuario.
+
+## Coste Total Estimado
+
+- **Total mensual aproximado**: **$100–400/mes**.
+
+## **b) Estrategias de Ahorro**
+
+1. **Inicio con EC2 barato + Docker Compose** para reducir costos al principio.
+2. **Uso de MongoDB Atlas gratuito** para la base de datos durante el desarrollo.
+3. **Uso de Redis en EC2** durante la fase de pruebas, y luego moverlo a ElastiCache para producción.
+4. **IA mediante APIs externas** durante las pruebas y, si se requiere mayor rendimiento, usar SageMaker.
+
+## **Viabilidad del Proyecto**
+
+- **Bajo costo inicial**: Los servicios de AWS ofrecen una solución escalable con bajo costo inicial.
+- **Escalabilidad**: La infraestructura en la nube permitirá aumentar los recursos conforme crezca el proyecto.
+- **Monitoreo de costos**: Es importante monitorear los costos mediante alertas para evitar gastos inesperados.
+
+## **Impacto**
+
+- **Escalabilidad sin grandes inversiones iniciales**: AWS permite que el proyecto crezca a medida que aumentan los usuarios, sin necesidad de grandes inversiones iniciales.
+- **Reducción de costos operativos**: Usar servicios gestionados ayuda a mantener los costos bajos.
+
+## **Resumen de Costos Mensuales Aproximados**
+
+| Componente                          | Costo Aproximado       |
+|-------------------------------------|------------------------|
+| **S3 Storage + CloudFront**         | $10–15 / mes           |
+| **ALB**                             | ~$32.8 / mes           |
+| **Backend (ECS/Fargate)**           | ~$35.55 / mes          |
+| **ElastiCache (Redis)**             | $15–100 / mes          |
+| **Base de Datos (DocumentDB/MongoDB)** | $0–200+ / mes          |
+| **IA (SageMaker/API externa)**      | $0–100+ / mes          |
+| **Autenticación (Amazon Cognito)**  | $0 hasta ~10k    |
+| **Total estimado**                  | ~$100–400 / mes        |
+
+
 
