@@ -22,7 +22,6 @@ public class AuthController {
     AuthController(AuthService authService) {
         this.authService = authService;
     }
-
     /**
      * Handles user registration requests.
      * 

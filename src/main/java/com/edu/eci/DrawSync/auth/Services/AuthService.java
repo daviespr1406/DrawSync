@@ -1,7 +1,12 @@
 package com.edu.eci.DrawSync.auth.Services;
 
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import org.passay.CharacterData;
+import org.passay.CharacterRule;
+import org.passay.EnglishCharacterData;
+import org.passay.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -40,10 +45,11 @@ public class AuthService {
         .builder()
         .userPoolId(userPoolId)
         .username(user.Username())
-        .messageAction("SUPPRESS")
+        .desiredDeliveryMediumsWithStrings("EMAIL")
         .userAttributes(
             AttributeType.builder().name("email").value(user.email()).build()
         )
+        .temporaryPassword(generateTemporaryPassword())
         .build();
 
         AdminCreateUserResponse response = cognitoClient.adminCreateUser(request);
@@ -65,5 +71,23 @@ public class AuthService {
      */
     private CognitoIdentityProviderClient setProviderClient(Region region){
         return CognitoIdentityProviderClient.builder().region(region).build();
+    }
+
+    /**
+     * Generates a temporary password containing a mix of uppercase letters, lowercase letters,
+     * digits, and special characters. The generated password will be 12 characters long and
+     * will include at least one character from each category.
+     *
+     * @return a randomly generated temporary password as a {@code String}
+     */
+    private String generateTemporaryPassword(){
+        PasswordGenerator generator = new PasswordGenerator();
+        CharacterRule upper = new CharacterRule(EnglishCharacterData.UpperCase,1);
+        CharacterRule lower = new CharacterRule(EnglishCharacterData.LowerCase,1);
+        CharacterRule digit = new CharacterRule(EnglishCharacterData.Digit,1);
+        CharacterRule special = new CharacterRule(EnglishCharacterData.Special, 1);
+
+        String pswd = generator.generatePassword(12, Arrays.asList(upper, lower, digit, special));
+        return pswd;
     }
 }
