@@ -33,7 +33,7 @@ public class RequestService {
         MultiValueMap<String,String> body = new LinkedMultiValueMap<>();
         body.add("client_id",clientId);
         body.add("client_secret", clientSecret);
-        body.add("scope", "default-m2m-resource-server-zrqwan/read");
+        body.add("scope", "default-m2m-resource-server-7xkjcx/read");
         body.add("grant_type", "client_credentials");
        
         

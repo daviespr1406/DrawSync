@@ -1,6 +1,8 @@
 package com.edu.eci.DrawSync.Exceptions;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -43,11 +45,14 @@ public class CognitoException{
      * @return a ResponseEntity with the provided HTTP status and a serializable body describing the error.
      */
     private ResponseEntity<?> buildError(HttpStatus status, CODE_ERROR code, String message,String requestId){
+        String timestamp = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        .withZone(ZoneId.systemDefault())
+        .format(Instant.now());
         return ResponseEntity
                             .status(status)
                             .body(
                                 Map.of(
-                                    "timestamp", Instant.now().toString(),
+                                    "timestamp", timestamp,
                                     "error", code,
                                     "message",message,
                                     "status",status.value(),

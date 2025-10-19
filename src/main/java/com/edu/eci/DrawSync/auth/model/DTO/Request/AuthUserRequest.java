@@ -10,5 +10,6 @@ package com.edu.eci.DrawSync.auth.model.DTO.Request;
  */
 public record AuthUserRequest(
     String Username,
-    String email
+    String email,
+    String password
 ) {}

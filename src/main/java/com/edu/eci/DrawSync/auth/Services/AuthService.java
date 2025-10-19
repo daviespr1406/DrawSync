@@ -1,12 +1,12 @@
 package com.edu.eci.DrawSync.auth.Services;
 
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.stream.Collectors;
 
-import org.passay.CharacterData;
-import org.passay.CharacterRule;
-import org.passay.EnglishCharacterData;
-import org.passay.PasswordGenerator;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -16,12 +16,24 @@ import com.edu.eci.DrawSync.auth.model.DTO.Response.AuthUserResponse;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ConfirmSignUpRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.SignUpRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.SignUpResponse;
 
 @Service
 public class AuthService {
+    @Value("${client.id}")
+    private String clientId;
+    
+    @Value("${client.secret}")
+    private String clientSecret;
+
+    @Value("${region}")
+    private String region;
+
     @Value("${user.pool_id}")
     private String userPoolId;
 
@@ -40,24 +52,23 @@ public class AuthService {
      */
     public AuthUserResponse createUserCognito (AuthUserRequest user){
 
-        var cognitoClient = setProviderClient(Region.US_EAST_2);
-        AdminCreateUserRequest request = AdminCreateUserRequest
-        .builder()
-        .userPoolId(userPoolId)
+        var cognitoClient = setProviderClient(region);
+        String secretHash = calculateSecretHash(clientId, clientSecret, user.Username());
+        
+        SignUpRequest request = SignUpRequest.builder()
+        .clientId(clientId)
+        .secretHash(secretHash)
         .username(user.Username())
-        .desiredDeliveryMediumsWithStrings("EMAIL")
-        .userAttributes(
-            AttributeType.builder().name("email").value(user.email()).build()
-        )
-        .temporaryPassword(generateTemporaryPassword())
+        .password(user.password())
+        .userAttributes(AttributeType.builder().name("email").value(user.email()).build())
         .build();
 
-        AdminCreateUserResponse response = cognitoClient.adminCreateUser(request);
+        SignUpResponse response = cognitoClient.signUp(request);
         
         return new AuthUserResponse(
-            response.user().username(), 
+            response.userSub(), 
             request.userAttributes().stream().collect(Collectors.toMap(AttributeType::name, AttributeType::value)),
-            UserStatus.valueOf(response.user().userStatusAsString())
+            UserStatus.UNCONFIRMED
         );
 
     }
@@ -69,25 +80,60 @@ public class AuthService {
      * @return a configured CognitoIdentityProviderClient instance for the specified region
      * @throws IllegalArgumentException if the region parameter is null
      */
-    private CognitoIdentityProviderClient setProviderClient(Region region){
-        return CognitoIdentityProviderClient.builder().region(region).build();
+    private CognitoIdentityProviderClient setProviderClient(String region){
+        return CognitoIdentityProviderClient.builder().region(Region.of(region)).build();
     }
 
     /**
-     * Generates a temporary password containing a mix of uppercase letters, lowercase letters,
-     * digits, and special characters. The generated password will be 12 characters long and
-     * will include at least one character from each category.
-     *
-     * @return a randomly generated temporary password as a {@code String}
+     * Calculates the SECRET_HASH required for Cognito operations when the app client has a secret.
+     * 
+     * The SECRET_HASH is computed as Base64(HMAC_SHA256(clientSecret, username + clientId))
+     * 
+     * @param clientId the Cognito app client ID
+     * @param clientSecret the Cognito app client secret
+     * @param username the username for which to calculate the hash
+     * @return the calculated SECRET_HASH as a Base64-encoded string
      */
-    private String generateTemporaryPassword(){
-        PasswordGenerator generator = new PasswordGenerator();
-        CharacterRule upper = new CharacterRule(EnglishCharacterData.UpperCase,1);
-        CharacterRule lower = new CharacterRule(EnglishCharacterData.LowerCase,1);
-        CharacterRule digit = new CharacterRule(EnglishCharacterData.Digit,1);
-        CharacterRule special = new CharacterRule(EnglishCharacterData.Special, 1);
-
-        String pswd = generator.generatePassword(12, Arrays.asList(upper, lower, digit, special));
-        return pswd;
+    private String calculateSecretHash(String clientId, String clientSecret, String username) {
+        try {
+            final String HMAC_SHA256 = "HmacSHA256";
+            Mac mac = Mac.getInstance(HMAC_SHA256);
+            SecretKeySpec secretKeySpec = new SecretKeySpec(clientSecret.getBytes(StandardCharsets.UTF_8), HMAC_SHA256);
+            mac.init(secretKeySpec);
+            byte[] rawHmac = mac.doFinal((username + clientId).getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(rawHmac);
+        } catch (Exception e) {
+            throw new RuntimeException("Error calculating SECRET_HASH", e);
+        }
     }
+
+    public AuthUserResponse confirmUserWithCode(String username,String code){
+        var provider = setProviderClient(region);
+        var secretHash = calculateSecretHash(clientId, clientSecret, username);
+        ConfirmSignUpRequest confirmRequest = ConfirmSignUpRequest.builder()
+        .clientId(clientId)
+        .username(username)
+        .confirmationCode(code)
+        .secretHash(secretHash)
+        .build();
+
+        provider.confirmSignUp(confirmRequest);
+
+        AdminGetUserRequest userRequest = AdminGetUserRequest.builder()
+        .userPoolId(userPoolId)
+        .username(username)
+        .build();
+
+        
+
+        AdminGetUserResponse userResponse = provider.adminGetUser(userRequest);
+
+        return new AuthUserResponse(
+            userResponse.username(), 
+            userResponse.userAttributes().stream().collect(Collectors.toMap(AttributeType::name, AttributeType::value)),
+            UserStatus.CONFIRMED) ;
+    }
+
+   
+
 }
