@@ -46,16 +46,36 @@ public class AuthController {
         ));
     }
 
+    /**
+     * Handles POST requests to confirm a user's account using a confirmation code.
+     * <p>
+     * Expects a {@link CodeConfirmRequest} in the request body containing the username and confirmation code.
+     * Returns a response entity with a success message and the confirmed user details.
+     *
+     * @param request the confirmation request containing username and code
+     * @return ResponseEntity containing a message and the confirmed user information
+     */
     @PostMapping("/confirm")
     public ResponseEntity<?> confirmWithCode(@RequestBody CodeConfirmRequest request) {
-        return ResponseEntity.ok(authService.confirmUserWithCode(request.username(), request.code()));
+        return ResponseEntity.ok(
+            Map.of("message","User confirmed successfully",
+            "user",authService.confirmUserWithCode(request.username(), request.code()))
+            );
     }
 
+    /**
+     * Retrieves user information from Cognito based on the provided username.
+     *
+     * @param username the username of the user to retrieve
+     * @return a ResponseEntity containing a success message and the user data
+     */
     @GetMapping("/{username}")
     public ResponseEntity<?> getMethodName(@PathVariable String username) {
-        return ResponseEntity.ok(authService.getUserFromCognito(username));
+        
+        return ResponseEntity.ok(
+            Map.of("message","User retrieved successfully",
+            "user",authService.getUserFromCognito(username))
+            );
     }
-    
-    
     
 }

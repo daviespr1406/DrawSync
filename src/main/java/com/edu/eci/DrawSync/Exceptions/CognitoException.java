@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import software.amazon.awssdk.services.cognitoidentityprovider.model.InvalidParameterException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.InvalidPasswordException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.NotAuthorizedException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserNotFoundException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UsernameExistsException;
 
@@ -139,6 +140,24 @@ public class CognitoException{
         return buildError(HttpStatus.valueOf(e.statusCode()), 
         CODE_ERROR.USER_NOT_FOUND, 
         "User does not exist", 
+        e.requestId());
+    }
+
+    /**
+     * Handles {@link NotAuthorizedException} when a user is already confirmed.
+     * <p>
+     * Returns an error response with HTTP status code from the exception,
+     * a specific error code indicating the user is already confirmed,
+     * and a descriptive message.
+     *
+     * @param e the {@link NotAuthorizedException} thrown when the user is already confirmed
+     * @return a {@link ResponseEntity} containing the error details
+     */
+    @ExceptionHandler(NotAuthorizedException.class)
+    public ResponseEntity<?> userAlreadyConfirmed(NotAuthorizedException e){
+        return buildError(HttpStatus.valueOf(e.statusCode()), 
+        CODE_ERROR.USER_ALREADY_CONFIMED, 
+        "User is already confirmed", 
         e.requestId());
     }
 

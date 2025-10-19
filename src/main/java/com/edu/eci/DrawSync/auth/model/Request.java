@@ -24,7 +24,7 @@ import org.springframework.web.client.RestTemplate;
  * </pre>
  * </p>
  *
- * @author
+ * @author DrawSync development Team
  */
 @Component
 public class Request {
