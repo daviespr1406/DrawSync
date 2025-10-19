@@ -21,7 +21,6 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUse
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ConfirmSignUpRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.SignUpRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.SignUpResponse;
 
 @Service
 public class AuthService {
@@ -63,10 +62,10 @@ public class AuthService {
         .userAttributes(AttributeType.builder().name("email").value(user.email()).build())
         .build();
 
-        SignUpResponse response = cognitoClient.signUp(request);
+        cognitoClient.signUp(request);
         
         return new AuthUserResponse(
-            response.userSub(), 
+            user.Username(), 
             request.userAttributes().stream().collect(Collectors.toMap(AttributeType::name, AttributeType::value)),
             UserStatus.UNCONFIRMED
         );
@@ -107,9 +106,33 @@ public class AuthService {
         }
     }
 
+    /**
+     * Confirms a user's registration using a confirmation code sent to their email or phone.
+     * 
+     * This method performs two main operations:
+     * 1. Confirms the user's sign-up using the provided confirmation code
+     * 2. Retrieves the user's details from the Cognito user pool
+     * 
+     * @param username the username of the user to be confirmed
+     * @param code the confirmation code sent to the user during registration
+     * @return an {@link AuthUserResponse} object containing the user's username, 
+     *         attributes as a map, and confirmation status set to CONFIRMED
+     * @throws software.amazon.awssdk.services.cognitoidentityprovider.model.CodeMismatchException 
+     *         if the confirmation code is invalid
+     * @throws software.amazon.awssdk.services.cognitoidentityprovider.model.ExpiredCodeException 
+     *         if the confirmation code has expired
+     * @throws software.amazon.awssdk.services.cognitoidentityprovider.model.UserNotFoundException 
+     *         if the specified user does not exist
+     */
     public AuthUserResponse confirmUserWithCode(String username,String code){
         var provider = setProviderClient(region);
         var secretHash = calculateSecretHash(clientId, clientSecret, username);
+        
+         AdminGetUserRequest userRequest = AdminGetUserRequest.builder()
+        .userPoolId(userPoolId)
+        .username(username)
+        .build();
+
         ConfirmSignUpRequest confirmRequest = ConfirmSignUpRequest.builder()
         .clientId(clientId)
         .username(username)
@@ -119,12 +142,7 @@ public class AuthService {
 
         provider.confirmSignUp(confirmRequest);
 
-        AdminGetUserRequest userRequest = AdminGetUserRequest.builder()
-        .userPoolId(userPoolId)
-        .username(username)
-        .build();
-
-        
+       
 
         AdminGetUserResponse userResponse = provider.adminGetUser(userRequest);
 
@@ -134,6 +152,36 @@ public class AuthService {
             UserStatus.CONFIRMED) ;
     }
 
+    /**
+     * Retrieves user information from AWS Cognito user pool.
+     * 
+     * This method queries the AWS Cognito service to fetch details about a specific user
+     * identified by their username. It communicates with the Cognito user pool using the
+     * AWS SDK and returns the user's information in a structured format.
+     *
+     * @param username the unique username of the user to retrieve from Cognito
+     * @return an {@link AuthUserResponse} object containing the user's username,
+     *         attributes as a key-value map, and current user status
+     * @throws software.amazon.awssdk.services.cognitoidentityprovider.model.UserNotFoundException
+     *         if the specified user does not exist in the user pool
+     * @throws software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException
+     *         if there is an error communicating with AWS Cognito service
+     */
+    public AuthUserResponse getUserFromCognito(String username){
+        var provider = setProviderClient(region);
+
+        AdminGetUserRequest userToFind = AdminGetUserRequest.builder()
+        .userPoolId(userPoolId)
+        .username(username)
+        .build();
+
+        AdminGetUserResponse userResponse = provider.adminGetUser(userToFind);;
+
+        return new AuthUserResponse(
+        userResponse.username(),
+        userResponse.userAttributes().stream().collect(Collectors.toMap(AttributeType::name, AttributeType::value)), 
+        UserStatus.valueOf(userResponse.userStatusAsString()));
+    }
    
 
 }

@@ -11,6 +11,9 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
 
 
 @RestController
@@ -47,6 +50,12 @@ public class AuthController {
     public ResponseEntity<?> confirmWithCode(@RequestBody CodeConfirmRequest request) {
         return ResponseEntity.ok(authService.confirmUserWithCode(request.username(), request.code()));
     }
+
+    @GetMapping("/{username}")
+    public ResponseEntity<?> getMethodName(@PathVariable String username) {
+        return ResponseEntity.ok(authService.getUserFromCognito(username));
+    }
+    
     
     
 }

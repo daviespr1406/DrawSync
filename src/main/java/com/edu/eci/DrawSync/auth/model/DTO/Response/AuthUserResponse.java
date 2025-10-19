@@ -13,7 +13,7 @@ import com.edu.eci.DrawSync.auth.model.UserStatus;
  * @param status The current status of the user account (e.g., ACTIVE, INACTIVE, SUSPENDED)
  */
 public record AuthUserResponse(
-    String id,
+    String username,
     Map<String,Object> attributes,
     UserStatus status
 ) {

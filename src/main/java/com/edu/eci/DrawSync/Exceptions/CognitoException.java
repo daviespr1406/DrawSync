@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import software.amazon.awssdk.services.cognitoidentityprovider.model.InvalidParameterException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.InvalidPasswordException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.UserNotFoundException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UsernameExistsException;
 
 /**
@@ -122,6 +123,23 @@ public class CognitoException{
             "Invalid email address format",
             e.requestId()
             );
+    }
+
+    /**
+     * Handles cases where the requested user does not exist by converting the
+     * UserNotFoundException into a standardized error response. The response
+     * includes the HTTP status provided by the exception, a USER_NOT_FOUND error
+     * code, a descriptive message, and the associated request ID.
+     *
+     * @param e the UserNotFoundException that triggered this handler
+     * @return a ResponseEntity containing the structured error payload and the appropriate HTTP status
+     */
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<?> userNotFound(UserNotFoundException e){
+        return buildError(HttpStatus.valueOf(e.statusCode()), 
+        CODE_ERROR.USER_NOT_FOUND, 
+        "User does not exist", 
+        e.requestId());
     }
 
 }
