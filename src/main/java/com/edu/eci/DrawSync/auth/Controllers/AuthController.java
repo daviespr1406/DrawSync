@@ -22,6 +22,18 @@ public class AuthController {
         this.authService = authService;
     }
 
+    /**
+     * Handles user registration requests.
+     * 
+     * This endpoint creates a new user account in AWS Cognito using the provided
+     * authentication credentials and user information.
+     *
+     * @param user the authentication request containing user registration details
+     *             (username, password, and other required attributes)
+     * @return ResponseEntity containing a success message and the created user details
+     *         wrapped in a Map with keys "message" and "user"
+     * @throws  if user creation fails in Cognito
+     */
     @PostMapping("/signup")
     public ResponseEntity<?> postMethodName(@RequestBody AuthUserRequest user) {
         return ResponseEntity.ok(Map.of(
