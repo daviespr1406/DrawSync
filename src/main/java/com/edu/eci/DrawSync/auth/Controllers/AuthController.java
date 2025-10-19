@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.edu.eci.DrawSync.auth.Services.AuthService;
 import com.edu.eci.DrawSync.auth.model.DTO.Request.AuthUserRequest;
 
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,7 +24,10 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> postMethodName(@RequestBody AuthUserRequest user) {
-        return ResponseEntity.ok(authService.createUserCognito(user));
+        return ResponseEntity.ok(Map.of(
+            "message","user created successfully",
+            "user", authService.createUserCognito(user)
+        ));
     }
     
 }
