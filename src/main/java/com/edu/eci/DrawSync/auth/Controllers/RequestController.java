@@ -21,10 +21,11 @@ public class RequestController {
     
     @GetMapping("/")
     public ResponseEntity<?> getTokenFromCognito(){
-        if (requestService.getTokenFromCognito() == null) return ResponseEntity.internalServerError().body("Error retrieving token");
+        var token = requestService.getTokenFromCognito();
+        if (token == null) return ResponseEntity.internalServerError().body("Error retrieving token");
         return ResponseEntity.ok(Map.of(
             "message","token received correctly",
-            "response", requestService.getTokenFromCognito()
+            "response", token
         ));
     }
 }

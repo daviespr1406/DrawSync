@@ -31,16 +31,14 @@ public class Request {
 
     @Value("${base.url}")
     private String baseUrl;
-    
+
     @Value("${client.id}")
     private String clientId;
-    
+
     @Value("${client.secret}")
     private String clientSecret;
 
-
     private final RestTemplate restTemplate;
-
 
     public Request(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
@@ -61,6 +59,4 @@ public class Request {
     public String getClientSecret() {
         return clientSecret;
     }
-    
-
 }

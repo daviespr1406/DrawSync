@@ -37,12 +37,11 @@ public class RequestService {
         body.add("grant_type", "client_credentials");
        
         
-
+        
         HttpEntity< MultiValueMap<String,String>> request = new HttpEntity<MultiValueMap<String,String>>(body, headers);
 
-       ResponseToken response = restTemplate.postForEntity(baseUrl, request, ResponseToken.class).getBody();
+       ResponseToken response = restTemplate.postForEntity(baseUrl + "/oauth2/token", request, ResponseToken.class).getBody();
         
-
         return response;
     }
 }
