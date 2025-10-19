@@ -34,12 +34,8 @@ public class AuthService {
      * @throws SdkClientException if there are issues with the AWS SDK client
      */
     public AuthUserResponse createUserCognito (AuthUserRequest user){
-        Region region = Region.US_EAST_2;
-        CognitoIdentityProviderClient cognitoClient = CognitoIdentityProviderClient
-        .builder()
-        .region(region)
-        .build();
 
+        var cognitoClient = setProviderClient(Region.US_EAST_2);
         AdminCreateUserRequest request = AdminCreateUserRequest
         .builder()
         .userPoolId(userPoolId)
@@ -48,7 +44,6 @@ public class AuthService {
         .userAttributes(
             AttributeType.builder().name("email").value(user.email()).build()
         )
-        .temporaryPassword(user.password())
         .build();
 
         AdminCreateUserResponse response = cognitoClient.adminCreateUser(request);
@@ -59,5 +54,16 @@ public class AuthService {
             UserStatus.valueOf(response.user().userStatusAsString())
         );
 
+    }
+
+    /**
+     * Creates and configures a CognitoIdentityProviderClient instance for the specified AWS region.
+     * 
+     * @param region the AWS region where the Cognito Identity Provider client will operate
+     * @return a configured CognitoIdentityProviderClient instance for the specified region
+     * @throws IllegalArgumentException if the region parameter is null
+     */
+    private CognitoIdentityProviderClient setProviderClient(Region region){
+        return CognitoIdentityProviderClient.builder().region(region).build();
     }
 }

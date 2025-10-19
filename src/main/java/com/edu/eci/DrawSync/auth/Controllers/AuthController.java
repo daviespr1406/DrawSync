@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.edu.eci.DrawSync.auth.Services.AuthService;
 import com.edu.eci.DrawSync.auth.model.DTO.Request.AuthUserRequest;
 
+
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,8 @@ public class AuthController {
      * @throws  if user creation fails in Cognito
      */
     @PostMapping("/signup")
-    public ResponseEntity<?> postMethodName(@RequestBody AuthUserRequest user) {
+    public ResponseEntity<?> postMethodName(
+        @RequestBody AuthUserRequest user) {
         return ResponseEntity.ok(Map.of(
             "message","user created successfully",
             "user", authService.createUserCognito(user)
