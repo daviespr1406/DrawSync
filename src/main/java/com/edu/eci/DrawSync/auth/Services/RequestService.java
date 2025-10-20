@@ -7,9 +7,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 
-import com.edu.eci.DrawSync.auth.Request;
+import com.edu.eci.DrawSync.auth.model.Request;
+import com.edu.eci.DrawSync.auth.model.DTO.Response.ResponseToken;
 
 @Service
 public class RequestService {
@@ -20,7 +22,7 @@ public class RequestService {
         this.request = request;
     }
 
-    public ResponseEntity<String> getTokenFromCognito(){
+    public ResponseToken getTokenFromCognito(){
 
         RestTemplate restTemplate = request.getRestTemplate();
         String clientId = request.getClientId();
@@ -33,15 +35,38 @@ public class RequestService {
         MultiValueMap<String,String> body = new LinkedMultiValueMap<>();
         body.add("client_id",clientId);
         body.add("client_secret", clientSecret);
-        body.add("scope", "default-m2m-resource-server-zrqwan/read");
+        body.add("scope", "default-m2m-resource-server-7xkjcx/read");
         body.add("grant_type", "client_credentials");
        
         
-
+        
         HttpEntity< MultiValueMap<String,String>> request = new HttpEntity<MultiValueMap<String,String>>(body, headers);
 
-        System.out.println("El request es "+ request);
-        ResponseEntity<String> response = restTemplate.postForEntity(baseUrl, request, String.class);
+        ResponseToken response = restTemplate.postForEntity(baseUrl + "/oauth2/token", request, ResponseToken.class).getBody();
+        
+        return response;
+    }
+
+    public ResponseEntity<?> handleCallback(@RequestParam("code") String code) {
+
+        RestTemplate restTemplate = request.getRestTemplate();
+        String clientId = request.getClientId();
+        String clientSecret = request.getClientSecret();
+        String baseUrl = request.getBaseUrl();
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "authorization_code");
+        body.add("client_id", clientId);
+        body.add("client_secret", clientSecret);
+        body.add("redirect_uri", "http://localhost:8080/callback");
+        body.add("code", code);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
+        String tokenEndpoint = baseUrl + "/oauth2/token";
+        ResponseEntity<String> response = restTemplate.postForEntity(tokenEndpoint, request, String.class);
 
         return response;
     }
