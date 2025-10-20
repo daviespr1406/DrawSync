@@ -14,13 +14,17 @@ import com.edu.eci.DrawSync.auth.model.UserStatus;
 import com.edu.eci.DrawSync.auth.model.DTO.Request.AuthUserRequest;
 import com.edu.eci.DrawSync.auth.model.DTO.Response.AuthUserResponse;
 
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ConfirmSignUpRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ResendConfirmationCodeRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.SignUpRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.UserNotFoundException;
 
 @Service
 public class AuthService {
@@ -51,7 +55,18 @@ public class AuthService {
      */
     public AuthUserResponse createUserCognito (AuthUserRequest user){
 
+        
         var cognitoClient = setProviderClient(region);
+
+        try {
+            cognitoClient.adminGetUser(AdminGetUserRequest.builder()
+                .userPoolId(userPoolId)
+                .username(user.email())
+                .build());
+            throw new RuntimeException("Email already exists in Cognito");
+        } catch (UserNotFoundException e) {
+            
+        }
         String secretHash = calculateSecretHash(clientId, clientSecret, user.Username());
         
         SignUpRequest request = SignUpRequest.builder()
@@ -183,5 +198,24 @@ public class AuthService {
         UserStatus.valueOf(userResponse.userStatusAsString()));
     }
    
+    /**
+     * Resends the sign-up confirmation code to the specified user via the configured identity provider (for example, Amazon Cognito).
+     * <p>
+     * The delivery channel (email or SMS) and destination are determined by the user pool configuration and the user's attributes.
+     * This operation requires the service to be configured with a valid region and client ID.
+     *
+     * @param username the unique username of the user to whom the confirmation code should be re-sent; must match the value used at sign-up
+     * @throws RuntimeException if the underlying identity provider rejects the request (e.g., user not found, user already confirmed, throttling, invalid parameters, or code delivery failure)
+     */
+    public void resendCode(String username){
+        var provider = setProviderClient(region);
+
+        ResendConfirmationCodeRequest resend = ResendConfirmationCodeRequest.builder()
+            .clientId(clientId)
+            .username(username)
+            .build();
+        
+            provider.resendConfirmationCode(resend);
+    } 
 
 }

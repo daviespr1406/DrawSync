@@ -78,4 +78,10 @@ public class AuthController {
             );
     }
     
+    @PostMapping("/resendCode")
+    public String postMethodName(@RequestBody String username) {
+        authService.resendCode(username);
+        return "Code resent successfully";
+    }
+    
 }

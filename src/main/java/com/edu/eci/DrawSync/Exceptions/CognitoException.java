@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import software.amazon.awssdk.services.cognitoidentityprovider.model.InvalidParameterException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.InvalidPasswordException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.LimitExceededException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.NotAuthorizedException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserNotFoundException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UsernameExistsException;
@@ -159,6 +160,31 @@ public class CognitoException{
         CODE_ERROR.USER_ALREADY_CONFIMED, 
         "User is already confirmed", 
         e.requestId());
+    }
+
+    /**
+     * Handles rate/attempt throttling by converting a LimitExceededException into an HTTP 429 (Too Many Requests) response.
+     *
+     * Produces a standardized error body identified as CODE_ERROR.LIMIT_EXCEEDED, includes a user-facing message advising
+     * to retry after some time, and propagates the originating request ID for traceability.
+     *
+     * @param e the thrown LimitExceededException from the downstream service
+     * @return a ResponseEntity with HTTP 429 (Too Many Requests) and a descriptive error payload
+     */
+    @ExceptionHandler(LimitExceededException.class)
+    public ResponseEntity<?> limitExceeded(LimitExceededException e){
+        return buildError(HttpStatus.TOO_MANY_REQUESTS, 
+        CODE_ERROR.LIMIT_EXCEEDED, 
+        "Attempt limit exceeded, please try after some time.", 
+        e.requestId());
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> emailAlreadyexists(RuntimeException e){
+        return buildError(HttpStatus.BAD_REQUEST, 
+        CODE_ERROR.USER_ALREADY_EXISTS, 
+        e.getMessage(), 
+        "N/A");
     }
 
 }

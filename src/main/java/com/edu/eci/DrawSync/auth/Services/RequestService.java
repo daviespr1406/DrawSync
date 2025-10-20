@@ -32,11 +32,12 @@ public class RequestService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        MultiValueMap<String,String> body = new LinkedMultiValueMap<>();
-        body.add("client_id",clientId);
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "authorization_code");
+        body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
-        body.add("scope", "default-m2m-resource-server-7xkjcx/read");
-        body.add("grant_type", "client_credentials");
+        body.add("redirect_uri", "http://localhost:8080/api/auth/request/test");
+        body.add("request_type","code" );
        
         
         
