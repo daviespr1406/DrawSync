@@ -179,12 +179,4 @@ public class CognitoException{
         e.requestId());
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<?> emailAlreadyexists(RuntimeException e){
-        return buildError(HttpStatus.BAD_REQUEST, 
-        CODE_ERROR.USER_ALREADY_EXISTS, 
-        e.getMessage(), 
-        "N/A");
-    }
-
 }
