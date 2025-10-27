@@ -8,9 +8,19 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class RestConfig {
 
+    private final BearerTokenInterceptor tokenInterceptor;
+
+    
+    public RestConfig(BearerTokenInterceptor tokenInterceptor) {
+        this.tokenInterceptor = tokenInterceptor;
+    }
+
     @Bean
     RestTemplate restTemplate(RestTemplateBuilder builder){
-        return builder.build();
+        return builder
+        .additionalInterceptors(tokenInterceptor)
+        .build();
     }
+
 }
 
