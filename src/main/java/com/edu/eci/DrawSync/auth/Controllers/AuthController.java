@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.edu.eci.DrawSync.auth.Services.AuthService;
 import com.edu.eci.DrawSync.auth.model.DTO.Request.AuthUserRequest;
 import com.edu.eci.DrawSync.auth.model.DTO.Request.CodeConfirmRequest;
+import com.edu.eci.DrawSync.auth.model.DTO.Response.AuthUserResponse;
 
 import java.util.Map;
 
@@ -69,17 +70,13 @@ public class AuthController {
      * @param username the username of the user to retrieve
      * @return a ResponseEntity containing a success message and the user data
      */
-    @GetMapping("/{username}")
-    public ResponseEntity<?> getMethodName(@PathVariable String username) {
-        
-        return ResponseEntity.ok(
-            Map.of("message","User retrieved successfully",
-            "user",authService.getUserFromCognito(username))
-            );
+     @GetMapping("/me")
+    public ResponseEntity<AuthUserResponse> getCurrentUser() {
+        return ResponseEntity.ok(authService.getUserFromCognito());
     }
     
-    @PostMapping("/resendCode")
-    public String postMethodName(@RequestBody String username) {
+    @GetMapping("/resendCode/{username}")
+    public String resendCodeToUser(@PathVariable String username) {
         authService.resendCode(username);
         return "Code resent successfully";
     }

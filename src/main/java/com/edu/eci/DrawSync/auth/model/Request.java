@@ -1,5 +1,6 @@
 package com.edu.eci.DrawSync.auth.model;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -38,15 +39,6 @@ public class Request {
     @Value("${client.secret}")
     private String clientSecret;
 
-    private final RestTemplate restTemplate;
-
-    public Request(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
-
-    public RestTemplate getRestTemplate() {
-        return restTemplate;
-    }
 
     public String getBaseUrl() {
         return baseUrl;
