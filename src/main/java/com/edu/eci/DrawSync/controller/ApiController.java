@@ -1,6 +1,4 @@
 package com.edu.eci.DrawSync.controller;
-
-
 import com.edu.eci.DrawSync.model.Game;
 import com.edu.eci.DrawSync.repository.GameRepository;
 import org.springframework.http.ResponseEntity;
