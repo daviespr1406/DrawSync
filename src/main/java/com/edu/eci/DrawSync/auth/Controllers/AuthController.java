@@ -74,7 +74,7 @@ public class AuthController {
      * @param username the username of the user to retrieve
      * @return a ResponseEntity containing a success message and the user data
      */
-     @GetMapping("/me")
+    @GetMapping("/me")
     public ResponseEntity<AuthUserResponse> getCurrentUser() {
         return ResponseEntity.ok(authService.getUserFromCognito());
     }
@@ -92,6 +92,7 @@ public class AuthController {
             "message", "Password recovery initiated successfully"
         ));
     }
+    
     
     @PostMapping("/confirm_password")
     public ResponseEntity<?> forgotPassword(@RequestBody ReocoverPassword request) {
