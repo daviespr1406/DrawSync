@@ -2,32 +2,46 @@ package com.edu.eci.DrawSync.auth.Services;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import com.edu.eci.DrawSync.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
+import org.springframework.web.client.RestTemplate;
 
+import com.edu.eci.DrawSync.Exceptions.CODE_ERROR;
+import com.edu.eci.DrawSync.Exceptions.UserException;
+import com.edu.eci.DrawSync.auth.model.Request;
 import com.edu.eci.DrawSync.auth.model.UserStatus;
 import com.edu.eci.DrawSync.auth.model.DTO.Request.AuthUserRequest;
 import com.edu.eci.DrawSync.auth.model.DTO.Response.AuthUserResponse;
+import com.edu.eci.DrawSync.model.User;
 
-import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ConfirmForgotPasswordRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ConfirmSignUpRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ForgotPasswordRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ResendConfirmationCodeRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.SignUpRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.UserNotFoundException;
 
 @Service
 public class AuthService {
+
+    private final CognitoIdentityProviderClient cognitoClient;
+
+    private final UserRepository userRepository;
+    
+    private final RestTemplate restTemplate;
+
+    private final Request request;
     @Value("${client.id}")
     private String clientId;
     
@@ -39,34 +53,39 @@ public class AuthService {
 
     @Value("${user.pool_id}")
     private String userPoolId;
+    
 
+    AuthService(UserRepository userRepository, CognitoIdentityProviderClient cognitoClient, RestTemplate restTemplate, Request request) {
+        this.userRepository = userRepository;
+        this.cognitoClient = cognitoClient;
+        this.restTemplate = restTemplate;
+        this.request = request;
+    }
+
+    
     /**
-     * Creates a new user in AWS Cognito user pool.
+     * Creates a new user in AWS Cognito and stores their information in the local database.
      * 
-     * This method initializes a Cognito Identity Provider client for the US_EAST_2 region
-     * and creates a new user with the provided credentials. The user is created with a
-     * temporary password and email verification is suppressed.
+     * This method performs the following operations:
+     * 1. Validates that the username is not already registered in the local database
+     * 2. Validates that the email is not already registered in the local database
+     * 3. Calculates the secret hash required for Cognito authentication
+     * 4. Registers the user in AWS Cognito with the provided credentials and email
+     * 5. Saves the user's basic information (username and email) in the local database
      * 
-     * @param user the authentication user request containing username, email, and password
-     * @return AuthUserResponse containing the created user's username, attributes map
-     *         (including email), and current user status
-     * @throws CognitoIdentityProviderException if the user creation fails due to Cognito service errors
-     * @throws SdkClientException if there are issues with the AWS SDK client
+     * @param user the authentication request containing the user's username, password, and email
+     * @return AuthUserResponse containing the username, user attributes (email), and confirmation status (UNCONFIRMED)
+     * @throws UserException if the username already exists (USERNAME_ALREADY_EXISTS) or 
+     *                      if the email already exists (EMAIL_ALREADY_EXISTS)
      */
-    public AuthUserResponse createUserCognito (AuthUserRequest user){
-
+    public AuthUserResponse createUserCognito (AuthUserRequest user) throws UserException{
         
-        var cognitoClient = setProviderClient(region);
+        if (userRepository.findByUsername(user.Username()).isPresent()) 
+            throw new UserException(UserException.USERNAME_ALREADY_EXISTS,CODE_ERROR.USERNAME_ALREADY_EXISTS);
+        if (userRepository.findByEmail(user.email()).isPresent()) 
+            throw new UserException(UserException.EMAIL_ALREADY_EXISTS,CODE_ERROR.EMAIL_ALREADY_EXISTS);
 
-        try {
-            cognitoClient.adminGetUser(AdminGetUserRequest.builder()
-                .userPoolId(userPoolId)
-                .username(user.email())
-                .build());
-            throw new RuntimeException("Email already exists in Cognito");
-        } catch (UserNotFoundException e) {
             
-        }
         String secretHash = calculateSecretHash(clientId, clientSecret, user.Username());
         
         SignUpRequest request = SignUpRequest.builder()
@@ -78,26 +97,21 @@ public class AuthService {
         .build();
 
         cognitoClient.signUp(request);
-        
+
+        var userToSave = new User();
+        userToSave.setUsername(user.Username());
+        userToSave.setEmail(user.email());
+        userRepository.save(userToSave);
+
         return new AuthUserResponse(
             user.Username(), 
             request.userAttributes().stream().collect(Collectors.toMap(AttributeType::name, AttributeType::value)),
             UserStatus.UNCONFIRMED
         );
-
+        
     }
 
-    /**
-     * Creates and configures a CognitoIdentityProviderClient instance for the specified AWS region.
-     * 
-     * @param region the AWS region where the Cognito Identity Provider client will operate
-     * @return a configured CognitoIdentityProviderClient instance for the specified region
-     * @throws IllegalArgumentException if the region parameter is null
-     */
-    private CognitoIdentityProviderClient setProviderClient(String region){
-        return CognitoIdentityProviderClient.builder().region(Region.of(region)).build();
-    }
-
+    
     /**
      * Calculates the SECRET_HASH required for Cognito operations when the app client has a secret.
      * 
@@ -140,13 +154,12 @@ public class AuthService {
      *         if the specified user does not exist
      */
     public AuthUserResponse confirmUserWithCode(String username,String code){
-        var provider = setProviderClient(region);
         var secretHash = calculateSecretHash(clientId, clientSecret, username);
-        
-         AdminGetUserRequest userRequest = AdminGetUserRequest.builder()
-        .userPoolId(userPoolId)
-        .username(username)
-        .build();
+    
+        User existingUser = userRepository.findByUsername(username)
+        .orElseThrow(
+            () -> new UserException("User not found",CODE_ERROR.USER_NOT_FOUND)
+            );
 
         ConfirmSignUpRequest confirmRequest = ConfirmSignUpRequest.builder()
         .clientId(clientId)
@@ -155,15 +168,12 @@ public class AuthService {
         .secretHash(secretHash)
         .build();
 
-        provider.confirmSignUp(confirmRequest);
+        cognitoClient.confirmSignUp(confirmRequest);
 
        
-
-        AdminGetUserResponse userResponse = provider.adminGetUser(userRequest);
-
         return new AuthUserResponse(
-            userResponse.username(), 
-            userResponse.userAttributes().stream().collect(Collectors.toMap(AttributeType::name, AttributeType::value)),
+            existingUser.getUsername(), 
+            Map.of("email",existingUser.getEmail()),
             UserStatus.CONFIRMED) ;
     }
 
@@ -182,21 +192,27 @@ public class AuthService {
      * @throws software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException
      *         if there is an error communicating with AWS Cognito service
      */
-    public AuthUserResponse getUserFromCognito(String username){
-        var provider = setProviderClient(region);
 
-        AdminGetUserRequest userToFind = AdminGetUserRequest.builder()
-        .userPoolId(userPoolId)
-        .username(username)
-        .build();
 
-        AdminGetUserResponse userResponse = provider.adminGetUser(userToFind);;
+    public AuthUserResponse getUserFromCognito() {
+        StopWatch sw = new StopWatch();
+        sw.start();
+        @SuppressWarnings(value = "unchecked")
+        Map<String,Object> body = restTemplate.getForObject(
+            request.getBaseUrl() + "/oauth2/userInfo",
+            Map.class);
 
-        return new AuthUserResponse(
-        userResponse.username(),
-        userResponse.userAttributes().stream().collect(Collectors.toMap(AttributeType::name, AttributeType::value)), 
-        UserStatus.valueOf(userResponse.userStatusAsString()));
+        AuthUserResponse response = new AuthUserResponse(
+            null,
+            body.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))),
+            UserStatus.CONFIRMED
+        );
+        sw.stop();
+        System.out.println(sw.prettyPrint(TimeUnit.MILLISECONDS));
+        return response;
     }
+
    
     /**
      * Resends the sign-up confirmation code to the specified user via the configured identity provider (for example, Amazon Cognito).
@@ -208,14 +224,39 @@ public class AuthService {
      * @throws RuntimeException if the underlying identity provider rejects the request (e.g., user not found, user already confirmed, throttling, invalid parameters, or code delivery failure)
      */
     public void resendCode(String username){
-        var provider = setProviderClient(region);
 
         ResendConfirmationCodeRequest resend = ResendConfirmationCodeRequest.builder()
             .clientId(clientId)
             .username(username)
+            .secretHash(calculateSecretHash(clientId, clientSecret, username))
             .build();
         
-            provider.resendConfirmationCode(resend);
+        cognitoClient.resendConfirmationCode(resend);
     } 
 
+  
+    public void recoverPassword(String username){
+        var request = ForgotPasswordRequest
+        .builder()
+        .clientId(clientId)
+        .secretHash(calculateSecretHash(clientId, clientSecret, username))
+        .username(username)
+        .build();
+
+       cognitoClient.forgotPassword(request);
+    }
+
+    public ResponseEntity<?> confirmPassword(String username, String code, String newPassword){
+        var request = ConfirmForgotPasswordRequest.builder()
+        .clientId(clientId)
+        .secretHash(calculateSecretHash(clientId, clientSecret, username))
+        .username(username)
+        .confirmationCode(code)
+        .password(newPassword)
+        .build();
+
+        var response = cognitoClient.confirmForgotPassword(request);
+
+        return ResponseEntity.ok(response.sdkHttpResponse());
+    }
 }

@@ -3,7 +3,6 @@ package com.edu.eci.DrawSync.auth.model.DTO.Response;
 import java.util.Map;
 
 import com.edu.eci.DrawSync.auth.model.UserStatus;
-import com.fasterxml.jackson.annotation.JacksonAnnotation;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 

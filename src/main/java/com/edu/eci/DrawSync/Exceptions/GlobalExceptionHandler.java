@@ -30,7 +30,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UserException.class)
-    public ResponseEntity<?> emailAlreadyExists(UserException e){
-        return buildError(HttpStatus.BAD_REQUEST, CODE_ERROR.EMAIL_ALREADY_EXISTS, UserException.EMAIL_ALREADY_EXISTS);
+    public ResponseEntity<?> userExceptions(UserException e){
+        return buildError(HttpStatus.BAD_REQUEST, e.getCode(), e.getMessage());
     }
+
+
 }

@@ -1,10 +1,12 @@
 package com.edu.eci.DrawSync.auth.Controllers;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.edu.eci.DrawSync.auth.Services.AuthService;
 import com.edu.eci.DrawSync.auth.model.DTO.Request.AuthUserRequest;
 import com.edu.eci.DrawSync.auth.model.DTO.Request.CodeConfirmRequest;
+import com.edu.eci.DrawSync.auth.model.DTO.Request.ReocoverPassword;
 import com.edu.eci.DrawSync.auth.model.DTO.Response.AuthUserResponse;
 
 import java.util.Map;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+
+
 
 
 
@@ -80,5 +84,22 @@ public class AuthController {
         authService.resendCode(username);
         return "Code resent successfully";
     }
+
+    @GetMapping("/password")
+    public ResponseEntity<?> forgotPassword(@RequestParam String username) {
+        authService.recoverPassword(username);
+        return ResponseEntity.ok(Map.of(
+            "message", "Password recovery initiated successfully"
+        ));
+    }
+    
+    @PostMapping("/confirm_password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ReocoverPassword request) {
+        authService.confirmPassword(request.username(),request.code(),request.newPassword());
+        return ResponseEntity.ok(Map.of(
+            "message", "Password recovery initiated successfully"
+        ));
+    }
+
     
 }

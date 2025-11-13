@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import software.amazon.awssdk.services.cognitoidentityprovider.model.CodeMismatchException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ExpiredCodeException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.InvalidParameterException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.InvalidPasswordException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.LimitExceededException;
@@ -79,7 +81,7 @@ public class CognitoException{
         return buildError(
             HttpStatus.valueOf(e.statusCode()), 
             CODE_ERROR.USER_ALREADY_EXISTS, 
-            "User account already exists",
+            e.awsErrorDetails().errorMessage(),
             e.requestId()
             );
     }
@@ -92,14 +94,14 @@ public class CognitoException{
      * @param e the InvalidPasswordException containing details about the password policy violation
      * @return a ResponseEntity with HTTP 400 (Bad Request) status, containing an error response
      *         that includes the error code BAD_PASSWORD, a descriptive message about the password
-     *         requirements (specifically the need for symbol characters), and the request ID for tracking
+     *         requirements, and the request ID for tracking
      */
     @ExceptionHandler(InvalidPasswordException.class)
     public ResponseEntity<?> invalidPassword(InvalidPasswordException e){
         return buildError(
             HttpStatus.valueOf(e.statusCode()), 
             CODE_ERROR.BAD_PASSWORD, 
-            "Password did not conform with password policy: Password must have symbol characters",
+            e.awsErrorDetails().errorMessage(),
             e.requestId()
             );
     }
@@ -121,8 +123,8 @@ public class CognitoException{
     public ResponseEntity<?> invalidMail(InvalidParameterException e){
         return buildError(
             HttpStatus.valueOf(e.statusCode()), 
-            CODE_ERROR.BAD_EMAIL, 
-            "Invalid email address format",
+            CODE_ERROR.INVALID_PARAMETER, 
+            e.awsErrorDetails().errorMessage(),
             e.requestId()
             );
     }
@@ -140,7 +142,7 @@ public class CognitoException{
     public ResponseEntity<?> userNotFound(UserNotFoundException e){
         return buildError(HttpStatus.valueOf(e.statusCode()), 
         CODE_ERROR.USER_NOT_FOUND, 
-        "User does not exist", 
+        e.awsErrorDetails().errorMessage(), 
         e.requestId());
     }
 
@@ -157,8 +159,8 @@ public class CognitoException{
     @ExceptionHandler(NotAuthorizedException.class)
     public ResponseEntity<?> userAlreadyConfirmed(NotAuthorizedException e){
         return buildError(HttpStatus.valueOf(e.statusCode()), 
-        CODE_ERROR.USER_ALREADY_CONFIMED, 
-        "User is already confirmed", 
+        CODE_ERROR.NOT_AUTHORIZED, 
+        e.awsErrorDetails().errorMessage(), 
         e.requestId());
     }
 
@@ -173,10 +175,25 @@ public class CognitoException{
      */
     @ExceptionHandler(LimitExceededException.class)
     public ResponseEntity<?> limitExceeded(LimitExceededException e){
-        return buildError(HttpStatus.TOO_MANY_REQUESTS, 
+        return buildError(HttpStatus.valueOf(e.statusCode()), 
         CODE_ERROR.LIMIT_EXCEEDED, 
-        "Attempt limit exceeded, please try after some time.", 
+        e.awsErrorDetails().errorMessage(),
         e.requestId());
     }
 
+    @ExceptionHandler(ExpiredCodeException.class)
+    public ResponseEntity<?> expiredCode(ExpiredCodeException e){
+        return buildError(HttpStatus.valueOf(e.statusCode()), 
+        CODE_ERROR.EXPIRED_CODE, 
+        e.awsErrorDetails().errorMessage(),
+        e.requestId());
+    }
+
+    @ExceptionHandler(CodeMismatchException.class)
+    public ResponseEntity<?> expiredCode(CodeMismatchException e){
+        return buildError(HttpStatus.valueOf(e.statusCode()), 
+        CODE_ERROR.EXPIRED_CODE, 
+        e.awsErrorDetails().errorMessage(),
+        e.requestId());
+    }
 }
