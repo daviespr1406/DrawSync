@@ -1,172 +1,327 @@
-# 🎨​ DrawSync
+# DrawSync - Backend
 
-**Autores:**  
-David Espinosa (daviespr1406)
+## Autores
 
-Sara Castillo (saracgarcia3)
-
-Salomón Baena (DSBAENAR)
+- **David Espinosa** (daviespr1406)
+- **Sara Castillo** (saracgarcia3)
+- **Salomón Baena** (DSBAENAR)
 
 ---
 
 ## Descripción del Proyecto
 
-**DrawSync** es una aplicación colaborativa en tiempo real que permite a múltiples usuarios dibujar simultáneamente en un mismo lienzo compartido.  
-El objetivo principal es **facilitar la co-creación y la expresión visual sincronizada**, ideal para talleres, clases o entornos de diseño remoto.
-
-El proyecto cuenta con un **frontend interactivo** y un **backend en Java Spring Boot**, conectados mediante **WebSockets** y **API REST**.  
-Cada usuario puede conectarse, seleccionar herramientas de dibujo y visualizar en vivo las acciones de los demás participantes.
+DrawSync Backend es la infraestructura del servidor para un juego multijugador de dibujo colaborativo en tiempo real. Gestiona salas de juego, comunicación en tiempo real mediante WebSockets, sincronización de temporizadores y transmisión de mensajes entre todos los clientes conectados.
 
 ---
 
-## Arquitectura General
+## Tecnologías Utilizadas
 
-El sistema adopta una arquitectura distribuida y escalable, compuesta por los siguientes elementos:
+### Framework Principal
+- **Spring Boot 3.5.6** - Framework de aplicación
+- **Java 17** - Lenguaje de programación
+- **Maven** - Herramienta de construcción y gestión de dependencias
 
-- **Frontend:** Interfaz construida con React.js, responsable de la interacción y el renderizado del lienzo compartido.  
-- **Backend:** API REST + WebSocket con **Spring Boot**, encargada de manejar usuarios, sesiones y sincronización.  
-- **Base de Datos:** MongoDB para persistir usuarios, sesiones y trazos de dibujo.  
-- **Infraestructura:** Despliegue en **AWS**, con balanceo de carga, Elastic Beanstalk y almacenamiento de recursos en S3.
+### Comunicación en Tiempo Real
+- **Spring WebSocket** - Soporte para WebSocket
+- **Protocolo STOMP** - Protocolo de mensajería sobre WebSocket
+- **SockJS** - Soporte de respaldo para WebSocket
 
----
+### Dependencias Adicionales
+- **Spring Security** - Configuración de seguridad
+- **Spring Actuator** - Monitoreo de aplicación
+- **Spring Data MongoDB** - Integración con base de datos
+- **JWT (jjwt)** - Soporte para JSON Web Token
+- **Lombok** - Reducción de código repetitivo
+- **Spring DevTools** - Utilidades de desarrollo
 
-## Diagrama C4 — Contexto
-
-El siguiente diagrama representa la arquitectura de **DrawSync** a nivel de contexto (C4-Model Level 1).  
-Se incluyen los actores principales, sistemas externos y los límites del sistema.
-
-
-
-**Descripción:**
-- Los usuarios interactúan con la aplicación desde un navegador web.  
-- El frontend envía y recibe eventos en tiempo real al backend mediante WebSocket.  
-- El backend gestiona usuarios, sesiones y persistencia en MongoDB.  
-- La infraestructura se despliega en AWS, permitiendo escalabilidad y disponibilidad continua.
-
----
-
-## Diagrama de Clases
-
-![Diagrama de Clases DrawSync](/assets/1.jpg)
+### Pruebas y Cobertura
+- **JUnit 5** - Framework de pruebas
+- **Mockito** - Framework de simulación
+- **JaCoCo** - Reporte de cobertura de código (objetivo: 80%+)
 
 ---
 
-##  Tecnologías Utilizadas
+## Funcionalidades Principales
 
-| Componente | Tecnología                     |
-|-------------|--------------------------------|
-| **Backend** | Java 21, Spring Boot 3.x       |
-| **Frontend** | React.js                       |
-| **Base de Datos** | MongoDB,Cache Redis            |
-| **Comunicación** | WebSocket + REST API           |
-| **Infraestructura** | AWS EC2, S3, Elastic Beanstalk |
-| **Colaboración y Diseño** | Miro, PlantUML, Draw.io        |
-| **Control de Versiones** | GitHub                         |
+### Gestión de Juegos
+- **Crear Juego** - Genera códigos únicos de 4 caracteres para salas
+- **Unirse a Juego** - Permite a jugadores unirse a salas existentes
+- **Iniciar Juego** - Inicia el temporizador y el gameplay
+- **Estados del Juego** - Rastrea estados LOBBY, PLAYING, FINISHED
+- **Soporte Multi-sala** - Múltiples juegos concurrentes
+
+### Características en Tiempo Real
+- **Comunicación WebSocket** - Mensajería bidireccional en tiempo real
+- **Tópicos por Sala** - Comunicación aislada por sala de juego
+- **Sincronización de Temporizador** - Cuenta regresiva por juego
+- **Transmisión de Chat** - Mensajes de chat en tiempo real
+- **Sincronización de Dibujo** - Compartir trazos de dibujo
+- **Señalización de Voz** - Señalización WebRTC para chat de voz
+
+### Gestión de Temporizadores
+- **Ejecución Programada** - Pool de hilos para múltiples temporizadores
+- **Limpieza Automática** - Cancelación de temporizadores al finalizar juegos
+- **Aislamiento por Juego** - Temporizadores independientes para cada sala
 
 ---
 
-## Ejecución del Backend
+## Arquitectura del Sistema
 
-### Requisitos previos
-- Java 21  
-- Maven 3.9+  
-- MongoDB (local o en la nube)
+### Estructura de Paquetes
 
-###  Ejecución local
+```
+com.edu.eci.DrawSync/
+├── config/              # Clases de configuración
+│   ├── SecurityConfig.java
+│   ├── WebSocketConfig.java
+│   └── RestConfig.java
+├── controller/          # Controladores REST y WebSocket
+│   ├── GameController.java
+│   ├── ChatController.java
+│   ├── DrawController.java
+│   └── VoiceController.java
+├── model/              # Modelos de dominio
+│   ├── Game.java
+│   ├── Message.java
+│   └── Stroke.java
+├── service/            # Lógica de negocio
+│   └── GameService.java
+└── Application.java    # Clase principal de aplicación
+```
+
+---
+
+## Endpoints de la API
+
+### API REST
+
+#### Crear Juego
+```http
+POST /api/games/create
+Content-Type: application/json
+
+{
+  "player": "nombre_usuario"
+}
+
+Respuesta: Objeto Game con gameCode
+```
+
+#### Unirse a Juego
+```http
+POST /api/games/join
+Content-Type: application/json
+
+{
+  "gameCode": "ABCD",
+  "player": "nombre_usuario"
+}
+
+Respuesta: Objeto Game
+```
+
+#### Obtener Estado del Juego
+```http
+GET /api/games/{gameCode}
+
+Respuesta: Objeto Game con estado y jugadores
+```
+
+#### Iniciar Juego
+```http
+POST /api/games/{gameCode}/start
+
+Respuesta: 200 OK
+```
+
+### Tópicos WebSocket
+
+#### Suscripción (Cliente → Servidor)
+- `/app/chat/{gameCode}` - Enviar mensaje de chat
+- `/app/draw/{gameCode}` - Enviar trazo de dibujo
+- `/app/voice/signal/{gameCode}` - Enviar señalización de voz
+
+#### Transmisión (Servidor → Clientes)
+- `/topic/{gameCode}/chat` - Recibir mensajes de chat
+- `/topic/{gameCode}/draw` - Recibir actualizaciones de dibujo
+- `/topic/{gameCode}/timer` - Recibir actualizaciones del temporizador
+- `/topic/{gameCode}/voice` - Recibir señalización de voz
+
+---
+
+## Instrucciones de Instalación
+
+### Requisitos Previos
+- Java 17+
+- Maven 3.6+
+- (Opcional) MongoDB para persistencia
+
+### Instalación
+
+1. **Clonar el repositorio**
+   ```bash
+   git clone https://github.com/daviespr1406/DrawSync.git
+   cd DrawSync
+   ```
+
+2. **Compilar el proyecto**
+   ```bash
+   mvn clean install
+   ```
+
+3. **Ejecutar la aplicación**
+   ```bash
+   mvn spring-boot:run
+   ```
+
+   El servidor estará disponible en `http://localhost:8080`
+
+---
+
+## Pruebas Unitarias
+
+### Ejecutar Pruebas
+
 ```bash
-git clone https://github.com/daviespr1406/DrawSync.git
-cd DrawSync
-mvn spring-boot:run
+# Ejecutar todas las pruebas
+mvn test
+
+# Ejecutar pruebas con reporte de cobertura
+mvn clean test jacoco:report
+
+# Ver reporte de cobertura
+# Windows: start target/site/jacoco/index.html
+# Mac/Linux: open target/site/jacoco/index.html
 ```
 
-Servidor disponible en:
+### Suite de Pruebas
+
+Pruebas comprehensivas para `GameService`:
+
+- `testCreateGame()` - Verificar creación de juego
+- `testJoinGame_Success()` - Jugador se une exitosamente
+- `testJoinGame_NonexistentGame()` - Manejar códigos inválidos
+- `testJoinGame_FinishedGame()` - Prevenir unirse a juegos finalizados
+- `testJoinGame_PlayingGame()` - Permitir uniones tardías
+- `testStartGame_Success()` - Juego inicia y temporizador comienza
+- `testStartGame_AlreadyPlaying()` - Inicio idempotente
+- `testStartGame_NonexistentGame()` - Manejar códigos inválidos
+- `testGetGame_Success()` - Recuperar juego por código
+- `testGetGame_NonexistentGame()` - Manejar no encontrado
+- `testMultipleGamesIndependence()` - Juegos aislados
+- `testGameCodeUniqueness()` - Códigos únicos
+
+### Resultados de Pruebas
+
+**[Insertar captura de pantalla de resultados de pruebas aquí]**
+
 ```
-http://localhost:8080
+Tests ejecutados: 13
+Fallos: 0
+Errores: 0
+Omitidos: 0
 ```
+
+### Cobertura de Código
+
+**[Insertar captura de pantalla del reporte de JaCoCo aquí]**
+
+#### Requisitos de Cobertura
+- Cobertura mínima de líneas: **80%**
+- Excluido de cobertura:
+  - Controladores (`**/controller/**`)
+  - Repositorios (`**/repository/**`)
+  - Modelos/DTOs (`**/model/**`)
+  - Clases de configuración (`**/config/**`)
+  - Clase principal de aplicación (`**/Application.class`)
+
+Reporte de cobertura disponible en: `target/site/jacoco/index.html`
 
 ---
 
-## Endpoints iniciales
+## Configuración
 
-| Método | Endpoint         | Descripción                        |
-|--------|------------------|------------------------------------|
-| GET    | /api/health      | Verifica el estado del servidor    |
-| POST   | /api/users       | Registra un nuevo usuario          |
-| GET    | /api/users       | Lista todos los usuarios registrados |
-| GET    | /api/sessions    | Obtiene las sesiones activas       |
+### Seguridad
+- CORS habilitado para todos los orígenes (desarrollo)
+- Endpoints WebSocket: `/ws/**` (público)
+- Endpoints API: `/api/**` (público)
 
----
+### WebSocket
+- Endpoint: `/ws`
+- Message broker: `/topic`
+- Destino de aplicación: `/app`
+- Orígenes permitidos: `*` (desarrollo)
 
-## Futuras Mejoras
-
-- Autenticación JWT y control de roles  
-- Persistencia de sesiones colaborativas  
-- Exportación del lienzo a imagen  
-- Chat en tiempo real integrado  
-- Despliegue CI/CD con GitHub Actions y AWS CodePipeline  
+### Pool de Hilos
+- Programador de temporizadores: 5 hilos
+- Soporta 5 juegos concurrentes con temporizadores activos
 
 ---
 
-## Costes estimados del proyecto
+## Flujo del Juego
 
-### **a) Coste de Infraestructura (AWS)**
+1. **Crear** → Jugador crea juego, obtiene código único
+2. **Lobby** → Jugadores se unen usando código, estado = LOBBY
+3. **Iniciar** → Creador inicia juego, estado = PLAYING, temporizador comienza
+4. **Jugar** → Cuenta regresiva de 60 segundos, dibujo/chat en tiempo real
+5. **Finalizar** → Temporizador llega a 0, estado = FINISHED
 
-1. **S3 + CloudFront (Frontend)**
-   - **S3**: Es un servicio para guardar archivos como imágenes y datos. Costo mensual estimado: **$1.15** por 50 GB.
-   - **CloudFront**: Ayuda a distribuir estos archivos rápidamente a los usuarios. Costo mensual estimado: **$8.50** por 100 GB de datos transferidos.
+---
 
-2. **ALB (Application Load Balancer)**
-   - **ALB**: Es un servicio que distribuye el tráfico entre servidores para que la aplicación funcione sin problemas. Costo estimado: **$32.8**/mes.
+## Depuración
 
-3. **Backend Real-time + REST (ECS/Fargate)**
-   - **Fargate**: Ejecuta la parte del servidor que gestiona las partidas y la comunicación entre jugadores. Costo estimado para 2 tareas 24/7: **$35.55**/mes.
+### Habilitar Logging
 
-4. **ElastiCache (Redis)**
-   - **Redis**: Ayuda a almacenar datos importantes (como el progreso de las partidas) de forma rápida. Costo estimado: **$15–100**/mes, dependiendo del tamaño del servicio.
+Agregar a `application.properties`:
+```properties
+logging.level.com.edu.eci.DrawSync=DEBUG
+logging.level.org.springframework.messaging=DEBUG
+```
 
-5. **Base de Datos (DocumentDB / MongoDB Atlas)**
-   - **DocumentDB** o **MongoDB Atlas**: Son servicios de bases de datos para almacenar usuarios y estadísticas. Costo estimado: **$0–200+**/mes.
+### Problemas Comunes
 
-6. **IA (SageMaker o API externa)**
-   - **IA**: Ayuda a que el sistema reconozca dibujos. Costo estimado: **$0–100+**/mes dependiendo del servicio.
+**WebSocket no se conecta**
+- Verificar configuración de CORS
+- Verificar endpoint SockJS `/ws`
+- Revisar configuración de firewall/red
 
-7. **Autenticación (Amazon Cognito)**
-   - **Cognito**: Gestiona el registro e inicio de sesión de los usuarios. Costo estimado: **$0 hasta 10k usuarios activos** al mes (gratis), luego alrededor de **$0.01–$0.015** por usuario.
+**Temporizador no sincroniza**
+- Verificar que el estado del juego sea PLAYING
+- Verificar suscripción WebSocket a `/topic/{gameCode}/timer`
+- Revisar logs del backend para ticks del temporizador
 
-## Coste Total Estimado
+**Chat no funciona**
+- Verificar formato del mensaje (campos username, message)
+- Verificar conexión WebSocket
+- Revisar logs del backend para recepción de mensajes
 
-- **Total mensual aproximado**: **$100–400/mes**.
+---
 
-## **b) Estrategias de Ahorro**
+## Diagramas del Sistema
 
-1. **Inicio con EC2 barato + Docker Compose** para reducir costos al principio.
-2. **Uso de MongoDB Atlas gratuito** para la base de datos durante el desarrollo.
-3. **Uso de Redis en EC2** durante la fase de pruebas, y luego moverlo a ElastiCache para producción.
-4. **IA mediante APIs externas** durante las pruebas y, si se requiere mayor rendimiento, usar SageMaker.
+### Diagrama de Arquitectura
 
-## **Viabilidad del Proyecto**
+**[Insertar diagrama de arquitectura aquí]**
 
-- **Bajo costo inicial**: Los servicios de AWS ofrecen una solución escalable con bajo costo inicial.
-- **Escalabilidad**: La infraestructura en la nube permitirá aumentar los recursos conforme crezca el proyecto.
-- **Monitoreo de costos**: Es importante monitorear los costos mediante alertas para evitar gastos inesperados.
+### Diagrama de Clases
 
-## **Impacto**
+**[Insertar diagrama de clases aquí]**
 
-- **Escalabilidad sin grandes inversiones iniciales**: AWS permite que el proyecto crezca a medida que aumentan los usuarios, sin necesidad de grandes inversiones iniciales.
-- **Reducción de costos operativos**: Usar servicios gestionados ayuda a mantener los costos bajos.
+### Diagrama de Secuencia - Flujo de Juego
 
-## **Resumen de Costos Mensuales Aproximados**
+**[Insertar diagrama de secuencia aquí]**
 
-| Componente                          | Costo Aproximado       |
-|-------------------------------------|------------------------|
-| **S3 Storage + CloudFront**         | $10–15 / mes           |
-| **ALB**                             | ~$32.8 / mes           |
-| **Backend (ECS/Fargate)**           | ~$35.55 / mes          |
-| **ElastiCache (Redis)**             | $15–100 / mes          |
-| **Base de Datos (DocumentDB/MongoDB)** | $0–200+ / mes          |
-| **IA (SageMaker/API externa)**      | $0–100+ / mes          |
-| **Autenticación (Amazon Cognito)**  | $0 hasta ~10k    |
-| **Total estimado**                  | ~$100–400 / mes        |
+---
 
+## Licencia
 
+Este proyecto es desarrollado con fines educativos como parte del curso ARSW en la Escuela Colombiana de Ingeniería Julio Garavito.
 
+---
+
+## Contacto
+
+Para consultas o contribuciones, contactar a los autores:
+- David Espinosa: daviespr1406
+- Sara Castillo: saracgarcia3
+- Salomón Baena: DSBAENAR
