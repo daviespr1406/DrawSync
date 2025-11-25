@@ -1,6 +1,9 @@
 package com.edu.eci.DrawSync.auth.Services;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -91,7 +94,7 @@ public class AuthService {
         if (userRepository.findByEmail(user.email()).isPresent()) 
             throw new UserException(UserException.EMAIL_ALREADY_EXISTS,CODE_ERROR.EMAIL_ALREADY_EXISTS);
 
-            
+        
         String secretHash = calculateSecretHash(clientId, clientSecret, user.Username());
         
         SignUpRequest request = SignUpRequest.builder()
@@ -107,6 +110,11 @@ public class AuthService {
         var userToSave = new User();
         userToSave.setUsername(user.Username());
         userToSave.setEmail(user.email());
+        userToSave.setCreatedAt(
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+            .withZone(ZoneId.systemDefault())
+            .format(Instant.now())
+        );
         userRepository.save(userToSave);
 
         return new AuthUserResponse(
@@ -114,7 +122,6 @@ public class AuthService {
             request.userAttributes().stream().collect(Collectors.toMap(AttributeType::name, AttributeType::value)),
             UserStatus.UNCONFIRMED
         );
-        
     }
 
     
@@ -208,6 +215,7 @@ public class AuthService {
             request.getBaseUrl() + "/oauth2/userInfo",
             Map.class);
 
+        
         AuthUserResponse response = new AuthUserResponse(
             null,
             body.entrySet().stream()
@@ -218,6 +226,8 @@ public class AuthService {
         System.out.println(sw.prettyPrint(TimeUnit.MILLISECONDS));
         return response;
     }
+
+    
 
    
     /**
