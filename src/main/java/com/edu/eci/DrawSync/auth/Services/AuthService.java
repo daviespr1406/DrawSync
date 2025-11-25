@@ -21,14 +21,20 @@ import com.edu.eci.DrawSync.Exceptions.UserException;
 import com.edu.eci.DrawSync.auth.model.Request;
 import com.edu.eci.DrawSync.auth.model.UserStatus;
 import com.edu.eci.DrawSync.auth.model.DTO.Request.AuthUserRequest;
+import com.edu.eci.DrawSync.auth.model.DTO.Request.LoginRequest;
 import com.edu.eci.DrawSync.auth.model.DTO.Response.AuthUserResponse;
+import com.edu.eci.DrawSync.auth.model.DTO.Response.LoginResponse;
 import com.edu.eci.DrawSync.model.User;
 
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AuthFlowType;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AuthenticationResultType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ConfirmForgotPasswordRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ConfirmSignUpRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ForgotPasswordRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.InitiateAuthRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.InitiateAuthResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ResendConfirmationCodeRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.SignUpRequest;
 
@@ -258,5 +264,29 @@ public class AuthService {
         var response = cognitoClient.confirmForgotPassword(request);
 
         return ResponseEntity.ok(response.sdkHttpResponse());
+    }
+
+    public LoginResponse login(LoginRequest loginrequest){
+        var request = InitiateAuthRequest.builder()
+        .clientId(clientId)
+        .authFlow(AuthFlowType.USER_PASSWORD_AUTH)
+        .authParameters(
+            Map.of(
+                "USERNAME",loginrequest.username(),
+                "PASSWORD",loginrequest.password(),
+                "SECRET_HASH",calculateSecretHash(clientId, clientSecret, loginrequest.username())
+                ))
+        .build();
+
+        InitiateAuthResponse response = cognitoClient.initiateAuth(request);
+
+        AuthenticationResultType result = response.authenticationResult();
+        
+        return new LoginResponse(
+            loginrequest.username(),
+            result.idToken(),
+            result.accessToken(),
+            result.refreshToken()
+        );
     }
 }

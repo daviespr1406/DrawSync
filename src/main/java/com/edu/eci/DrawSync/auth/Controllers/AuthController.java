@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.edu.eci.DrawSync.auth.Services.AuthService;
 import com.edu.eci.DrawSync.auth.model.DTO.Request.AuthUserRequest;
 import com.edu.eci.DrawSync.auth.model.DTO.Request.CodeConfirmRequest;
+import com.edu.eci.DrawSync.auth.model.DTO.Request.LoginRequest;
 import com.edu.eci.DrawSync.auth.model.DTO.Request.ReocoverPassword;
 import com.edu.eci.DrawSync.auth.model.DTO.Response.AuthUserResponse;
 
@@ -14,7 +15,6 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -102,5 +102,10 @@ public class AuthController {
         ));
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.login(request));     
+    }
+    
     
 }
