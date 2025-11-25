@@ -6,6 +6,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -227,7 +228,16 @@ public class AuthService {
         return response;
     }
 
-    
+    public UserDB getUserDB(String username){
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new UserException(UserException.USERNAME_NO_EXISTS,CODE_ERROR.USER_NOT_FOUND));
+            return new UserDB(
+            user.getUsername(),
+            user.getEmail(), 
+            user.getCreatedAt(),
+            user.getPicture());
+        }
+
 
    
     /**

@@ -79,6 +79,12 @@ public class AuthController {
     public ResponseEntity<AuthUserResponse> getCurrentUser() {
         return ResponseEntity.ok(authService.getUserFromCognito());
     }
+
+    @GetMapping("/{username}")
+    public ResponseEntity<?> getMethodName(@PathVariable String username) {
+        return ResponseEntity.ok(authService.getUserDB(username));
+    }
+    
     
     @GetMapping("/resendCode/{username}")
     public String resendCodeToUser(@PathVariable String username) {
