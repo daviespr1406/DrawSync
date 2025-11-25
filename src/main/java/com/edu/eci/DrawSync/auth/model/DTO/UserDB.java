@@ -1,4 +1,4 @@
-package com.edu.eci.DrawSync.auth.Services;
+package com.edu.eci.DrawSync.auth.model.DTO;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;

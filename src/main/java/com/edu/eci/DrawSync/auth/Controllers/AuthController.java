@@ -80,18 +80,45 @@ public class AuthController {
         return ResponseEntity.ok(authService.getUserFromCognito());
     }
 
+    /**
+     * This Java function uses a GET request to retrieve user information from a database based on the
+     * provided username.
+     * @param {String} username - The `@GetMapping("/{username}")` annotation in the code snippet
+     * indicates that this method will handle HTTP GET requests to a specific endpoint with a path
+     * variable `{username}`. The `@PathVariable String username` parameter in the method signature
+     * captures the value of the `username` path variable from the request URL
+     * @returns The method is returning a ResponseEntity object with the result of calling the
+     * `getUserDB` method from the `authService` with the `username` parameter.
+     */
     @GetMapping("/{username}")
     public ResponseEntity<?> getMethodName(@PathVariable String username) {
         return ResponseEntity.ok(authService.getUserDB(username));
     }
     
     
+    /**
+     * The `resendCodeToUser` function in Java resends a verification code to a user specified by their
+     * username.
+     * @param {String} username - The `username` parameter in the `resendCodeToUser` method is a path
+     * variable that is extracted from the URL path. It is used to identify the user to whom the code needs
+     * to be resent.
+     * @returns The method `resendCodeToUser` is returning a String message "Code resent successfully".
+     */
     @GetMapping("/resendCode/{username}")
     public String resendCodeToUser(@PathVariable String username) {
         authService.resendCode(username);
         return "Code resent successfully";
     }
 
+    /**
+     * The `forgotPassword` function in the Java code initiates the password recovery process for a
+     * specified username.
+     * @param {String} username - The `username` parameter in the `forgotPassword` method is used to
+     * identify the user for whom the password recovery process needs to be initiated. This parameter
+     * is passed as a query parameter in the GET request to the `/password` endpoint.
+     * @returns A ResponseEntity with a message indicating that the password recovery has been
+     * initiated successfully.
+     */
     @GetMapping("/password")
     public ResponseEntity<?> forgotPassword(@RequestParam String username) {
         authService.recoverPassword(username);
@@ -100,6 +127,15 @@ public class AuthController {
         ));
     }
     
+    /**
+     * The `forgotPassword` function in the Java code snippet handles confirming a new password for
+     * password recovery.
+     * @param {ReocoverPassword} request - The `forgotPassword` method in the code snippet is a POST
+     * mapping that handles a request to confirm a password recovery. The method takes in a
+     * `RecoverPassword` object as the request body, which likely contains the following parameters:
+     * @returns The method is returning a ResponseEntity with a message indicating that the password
+     * recovery has been initiated successfully.
+     */
     @PostMapping("/confirm_password")
     public ResponseEntity<?> forgotPassword(@RequestBody ReocoverPassword request) {
         authService.confirmPassword(request.username(),request.code(),request.newPassword());
@@ -107,7 +143,16 @@ public class AuthController {
             "message", "Password recovery initiated successfully"
         ));
     }
-
+    
+    /**
+     * This Java function handles a POST request to the "/login" endpoint and returns the result of the
+     * login operation using the authService.
+     * @param {LoginRequest} request - The `login` method in the code snippet is a POST mapping that
+     * accepts a request body of type `LoginRequest`. The method then calls the `login` method of the
+     * `authService` and returns the result as a ResponseEntity.
+     * @returns The code snippet is returning a ResponseEntity object with the result of the login
+     * operation performed by the authService.
+     */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));     

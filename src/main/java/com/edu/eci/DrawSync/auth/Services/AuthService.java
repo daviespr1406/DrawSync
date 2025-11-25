@@ -6,7 +6,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -24,6 +23,7 @@ import com.edu.eci.DrawSync.Exceptions.CODE_ERROR;
 import com.edu.eci.DrawSync.Exceptions.UserException;
 import com.edu.eci.DrawSync.auth.model.Request;
 import com.edu.eci.DrawSync.auth.model.UserStatus;
+import com.edu.eci.DrawSync.auth.model.DTO.UserDB;
 import com.edu.eci.DrawSync.auth.model.DTO.Request.AuthUserRequest;
 import com.edu.eci.DrawSync.auth.model.DTO.Request.LoginRequest;
 import com.edu.eci.DrawSync.auth.model.DTO.Response.AuthUserResponse;
