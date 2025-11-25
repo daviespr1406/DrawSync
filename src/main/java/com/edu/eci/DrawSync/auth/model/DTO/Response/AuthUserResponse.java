@@ -19,5 +19,4 @@ public record AuthUserResponse(
     String username,
     Map<String,Object> attributes,
     UserStatus status
-) {
-}
+) {}

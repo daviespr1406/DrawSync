@@ -2,6 +2,7 @@ package com.edu.eci.DrawSync.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.util.List;
 
 
@@ -13,6 +14,9 @@ public class User {
     private String email;
     private String passwordHash;
     private List<String> roles;
+    private String createdAt;
+    private String picture;
+   
     public String getId() {
         return id;
     }
@@ -43,6 +47,20 @@ public class User {
     public void setRoles(List<String> roles) {
         this.roles = roles;
     }
-
     
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
 }

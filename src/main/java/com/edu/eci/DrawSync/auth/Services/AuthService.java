@@ -1,6 +1,9 @@
 package com.edu.eci.DrawSync.auth.Services;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -20,15 +23,22 @@ import com.edu.eci.DrawSync.Exceptions.CODE_ERROR;
 import com.edu.eci.DrawSync.Exceptions.UserException;
 import com.edu.eci.DrawSync.auth.model.Request;
 import com.edu.eci.DrawSync.auth.model.UserStatus;
+import com.edu.eci.DrawSync.auth.model.DTO.UserDB;
 import com.edu.eci.DrawSync.auth.model.DTO.Request.AuthUserRequest;
+import com.edu.eci.DrawSync.auth.model.DTO.Request.LoginRequest;
 import com.edu.eci.DrawSync.auth.model.DTO.Response.AuthUserResponse;
+import com.edu.eci.DrawSync.auth.model.DTO.Response.LoginResponse;
 import com.edu.eci.DrawSync.model.User;
 
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AuthFlowType;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AuthenticationResultType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ConfirmForgotPasswordRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ConfirmSignUpRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ForgotPasswordRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.InitiateAuthRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.InitiateAuthResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ResendConfirmationCodeRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.SignUpRequest;
 
@@ -85,7 +95,7 @@ public class AuthService {
         if (userRepository.findByEmail(user.email()).isPresent()) 
             throw new UserException(UserException.EMAIL_ALREADY_EXISTS,CODE_ERROR.EMAIL_ALREADY_EXISTS);
 
-            
+        
         String secretHash = calculateSecretHash(clientId, clientSecret, user.Username());
         
         SignUpRequest request = SignUpRequest.builder()
@@ -101,6 +111,11 @@ public class AuthService {
         var userToSave = new User();
         userToSave.setUsername(user.Username());
         userToSave.setEmail(user.email());
+        userToSave.setCreatedAt(
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+            .withZone(ZoneId.systemDefault())
+            .format(Instant.now())
+        );
         userRepository.save(userToSave);
 
         return new AuthUserResponse(
@@ -108,7 +123,6 @@ public class AuthService {
             request.userAttributes().stream().collect(Collectors.toMap(AttributeType::name, AttributeType::value)),
             UserStatus.UNCONFIRMED
         );
-        
     }
 
     
@@ -202,6 +216,7 @@ public class AuthService {
             request.getBaseUrl() + "/oauth2/userInfo",
             Map.class);
 
+        
         AuthUserResponse response = new AuthUserResponse(
             null,
             body.entrySet().stream()
@@ -212,6 +227,17 @@ public class AuthService {
         System.out.println(sw.prettyPrint(TimeUnit.MILLISECONDS));
         return response;
     }
+
+    public UserDB getUserDB(String username){
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new UserException(UserException.USERNAME_NO_EXISTS,CODE_ERROR.USER_NOT_FOUND));
+            return new UserDB(
+            user.getUsername(),
+            user.getEmail(), 
+            user.getCreatedAt(),
+            user.getPicture());
+        }
+
 
    
     /**
@@ -258,5 +284,29 @@ public class AuthService {
         var response = cognitoClient.confirmForgotPassword(request);
 
         return ResponseEntity.ok(response.sdkHttpResponse());
+    }
+
+    public LoginResponse login(LoginRequest loginrequest){
+        var request = InitiateAuthRequest.builder()
+        .clientId(clientId)
+        .authFlow(AuthFlowType.USER_PASSWORD_AUTH)
+        .authParameters(
+            Map.of(
+                "USERNAME",loginrequest.username(),
+                "PASSWORD",loginrequest.password(),
+                "SECRET_HASH",calculateSecretHash(clientId, clientSecret, loginrequest.username())
+                ))
+        .build();
+
+        InitiateAuthResponse response = cognitoClient.initiateAuth(request);
+
+        AuthenticationResultType result = response.authenticationResult();
+        
+        return new LoginResponse(
+            loginrequest.username(),
+            result.idToken(),
+            result.accessToken(),
+            result.refreshToken()
+        );
     }
 }
