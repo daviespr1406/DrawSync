@@ -28,7 +28,6 @@ public class RequestService {
     public ResponseToken getTokenFromCognito(String code){
 
         String clientId = request.getClientId();
-        System.out.println(clientId);
         String clientSecret = request.getClientSecret();
         String baseUrl = request.getBaseUrl();
 
