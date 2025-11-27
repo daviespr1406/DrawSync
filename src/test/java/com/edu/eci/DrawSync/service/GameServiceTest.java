@@ -1,6 +1,7 @@
 package com.edu.eci.DrawSync.service;
 
 import com.edu.eci.DrawSync.model.Game;
+import com.edu.eci.DrawSync.model.GameStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +44,7 @@ class GameServiceTest {
         assertNotNull(game.getGameCode());
         assertEquals(4, game.getGameCode().length());
         assertTrue(game.getPlayers().contains(creator));
-        assertEquals(Game.GameStatus.LOBBY, game.getStatus());
+        assertEquals(GameStatus.LOBBY, game.getStatus());
         assertEquals(60, game.getTimeRemaining());
     }
 
@@ -62,7 +63,7 @@ class GameServiceTest {
         assertNotNull(joinedGame);
         assertEquals(2, joinedGame.getPlayers().size());
         assertTrue(joinedGame.getPlayers().contains(joiner));
-        assertEquals(Game.GameStatus.LOBBY, joinedGame.getStatus());
+        assertEquals(GameStatus.LOBBY, joinedGame.getStatus());
     }
 
     @Test
@@ -84,9 +85,9 @@ class GameServiceTest {
         String creator = "Player1";
         Game game = gameService.createGame(creator);
         String gameCode = game.getGameCode();
-        
+
         // Manually set game to FINISHED
-        game.setStatus(Game.GameStatus.FINISHED);
+        game.setStatus(GameStatus.FINISHED);
 
         // When
         Game result = gameService.joinGame(gameCode, "Player2");
@@ -101,7 +102,7 @@ class GameServiceTest {
         String creator = "Player1";
         Game game = gameService.createGame(creator);
         String gameCode = game.getGameCode();
-        
+
         // Start the game
         gameService.startGame(gameCode);
 
@@ -125,14 +126,13 @@ class GameServiceTest {
         gameService.startGame(gameCode);
 
         // Then
-        assertEquals(Game.GameStatus.PLAYING, game.getStatus());
-        
+        assertEquals(GameStatus.PLAYING, game.getStatus());
+
         // Verify timer started (wait a bit and check messaging template was called)
         Thread.sleep(1100); // Wait for at least one timer tick
         verify(messagingTemplate, atLeastOnce()).convertAndSend(
-            eq("/topic/" + gameCode + "/timer"),
-            anyInt()
-        );
+                eq("/topic/" + gameCode + "/timer"),
+                anyInt());
     }
 
     @Test
@@ -141,16 +141,15 @@ class GameServiceTest {
         String creator = "Player1";
         Game game = gameService.createGame(creator);
         String gameCode = game.getGameCode();
-        
+
         // Start game first time
         gameService.startGame(gameCode);
-        int firstTimeRemaining = game.getTimeRemaining();
 
         // When - try to start again
         gameService.startGame(gameCode);
 
         // Then - should not restart (status already PLAYING)
-        assertEquals(Game.GameStatus.PLAYING, game.getStatus());
+        assertEquals(GameStatus.PLAYING, game.getStatus());
     }
 
     @Test

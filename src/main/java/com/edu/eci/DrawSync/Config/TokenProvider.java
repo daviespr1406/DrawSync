@@ -1,4 +1,4 @@
-package com.edu.eci.DrawSync.Config;
+package com.edu.eci.DrawSync.config;
 
 
 import org.springframework.stereotype.Component;

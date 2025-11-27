@@ -1,4 +1,4 @@
-package com.edu.eci.DrawSync.Config;
+package com.edu.eci.DrawSync.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,12 +24,15 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
  * </ul>
  * </p>
  */
- 
+
 /**
- * Creates and configures a singleton {@code CognitoIdentityProviderClient} bean using the AWS SDK v2.
+ * Creates and configures a singleton {@code CognitoIdentityProviderClient} bean
+ * using the AWS SDK v2.
  *
- * @return a thread-safe {@code CognitoIdentityProviderClient} configured for the {@code us-east-2} region
- * @implNote The region is fixed to {@code us-east-2}. Prefer externalizing to configuration if you need
+ * @return a thread-safe {@code CognitoIdentityProviderClient} configured for
+ *         the {@code us-east-2} region
+ * @implNote The region is fixed to {@code us-east-2}. Prefer externalizing to
+ *           configuration if you need
  *           multi-environment or multi-region deployments.
  * @see software.amazon.awssdk.services.cognitoidp.CognitoIdentityProviderClient
  */
@@ -39,7 +42,7 @@ public class CognitoConfig {
     @Bean
     public CognitoIdentityProviderClient cognitoClient() {
         return CognitoIdentityProviderClient.builder()
-            .region(Region.US_EAST_2)
-            .build();
+                .region(Region.US_EAST_2)
+                .build();
     }
 }

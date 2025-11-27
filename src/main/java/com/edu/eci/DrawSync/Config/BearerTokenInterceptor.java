@@ -1,5 +1,4 @@
-package com.edu.eci.DrawSync.Config;
-
+package com.edu.eci.DrawSync.config;
 
 import java.io.IOException;
 
@@ -10,12 +9,20 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 
 /**
- * Intercepts an outgoing HTTP request, adding an {@code Authorization: Bearer} header when a token is available.
+ * Intercepts an outgoing HTTP request, adding an {@code Authorization: Bearer}
+ * header when a token is available.
  *
- * <p>If the {@code TokenProvider} returns {@code null} or a blank token, the header is not added and the request
- * proceeds unchanged. Otherwise, the method sets the Bearer token and delegates execution.</p>
+ * <p>
+ * If the {@code TokenProvider} returns {@code null} or a blank token, the
+ * header is not added and the request
+ * proceeds unchanged. Otherwise, the method sets the Bearer token and delegates
+ * execution.
+ * </p>
  *
- * <p>This method delegates exactly once to {@code execution.execute(request, body)}.</p>
+ * <p>
+ * This method delegates exactly once to
+ * {@code execution.execute(request, body)}.
+ * </p>
  *
  * @param request   the HTTP request to execute
  * @param body      the request body as a byte array
@@ -36,7 +43,7 @@ public class BearerTokenInterceptor implements ClientHttpRequestInterceptor {
     public ClientHttpResponse intercept(
             HttpRequest request,
             byte[] body,
-            ClientHttpRequestExecution execution) throws IOException  {
+            ClientHttpRequestExecution execution) throws IOException {
 
         String token = tokenProvider.getAccessToken();
         if (token != null && !token.isBlank()) {
@@ -46,5 +53,4 @@ public class BearerTokenInterceptor implements ClientHttpRequestInterceptor {
         return execution.execute(request, body);
     }
 
-   
 }

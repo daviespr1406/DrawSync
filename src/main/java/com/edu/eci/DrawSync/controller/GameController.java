@@ -48,4 +48,17 @@ public class GameController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @PostMapping("/{gameCode}/submit")
+    public ResponseEntity<?> submitDrawing(@PathVariable String gameCode, @RequestBody Map<String, String> payload) {
+        String player = payload.get("player");
+        String drawing = payload.get("drawing"); // Base64
+
+        if (player == null || drawing == null) {
+            return ResponseEntity.badRequest().body("Missing player or drawing");
+        }
+
+        gameService.submitDrawing(gameCode, player, drawing);
+        return ResponseEntity.ok().build();
+    }
 }

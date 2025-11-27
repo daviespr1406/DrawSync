@@ -24,7 +24,7 @@ public class DrawController {
     @SendTo("/topic/{gameCode}/strokes")
     public Stroke handleStroke(@DestinationVariable String gameCode, Stroke stroke) {
         if (stroke.getTimestamp() == 0) stroke.setTimestamp(System.currentTimeMillis());
-        stroke.setSessionId(gameCode); // Use gameCode as sessionId
+        stroke.setSessionId(gameCode); 
         strokeRepository.save(stroke);
         return stroke;
     }

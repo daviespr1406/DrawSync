@@ -21,7 +21,7 @@ class GameTest {
         assertEquals(4, game.getGameCode().length());
         assertNotNull(game.getPlayers());
         assertEquals(0, game.getPlayers().size());
-        assertEquals(Game.GameStatus.LOBBY, game.getStatus());
+        assertEquals(GameStatus.LOBBY, game.getStatus());
         assertEquals(60, game.getTimeRemaining());
     }
 
@@ -80,7 +80,7 @@ class GameTest {
     @Test
     void testSetStatus() {
         // Given
-        Game.GameStatus newStatus = Game.GameStatus.PLAYING;
+        GameStatus newStatus = GameStatus.PLAYING;
 
         // When
         game.setStatus(newStatus);
@@ -104,10 +104,10 @@ class GameTest {
     @Test
     void testGameStatusEnum() {
         // Verify all enum values exist
-        assertEquals(3, Game.GameStatus.values().length);
-        assertNotNull(Game.GameStatus.valueOf("LOBBY"));
-        assertNotNull(Game.GameStatus.valueOf("PLAYING"));
-        assertNotNull(Game.GameStatus.valueOf("FINISHED"));
+        assertEquals(3, GameStatus.values().length);
+        assertNotNull(GameStatus.valueOf("LOBBY"));
+        assertNotNull(GameStatus.valueOf("PLAYING"));
+        assertNotNull(GameStatus.valueOf("FINISHED"));
     }
 
     @Test
@@ -134,24 +134,24 @@ class GameTest {
     @Test
     void testGameLifecycle() {
         // Create game in LOBBY
-        assertEquals(Game.GameStatus.LOBBY, game.getStatus());
+        assertEquals(GameStatus.LOBBY, game.getStatus());
 
         // Add players
         game.addPlayer("Player1");
         game.addPlayer("Player2");
 
         // Start game
-        game.setStatus(Game.GameStatus.PLAYING);
-        assertEquals(Game.GameStatus.PLAYING, game.getStatus());
+        game.setStatus(GameStatus.PLAYING);
+        assertEquals(GameStatus.PLAYING, game.getStatus());
 
         // Simulate time passing
         game.setTimeRemaining(30);
         assertEquals(30, game.getTimeRemaining());
 
         // Finish game
-        game.setStatus(Game.GameStatus.FINISHED);
+        game.setStatus(GameStatus.FINISHED);
         game.setTimeRemaining(0);
-        assertEquals(Game.GameStatus.FINISHED, game.getStatus());
+        assertEquals(GameStatus.FINISHED, game.getStatus());
         assertEquals(0, game.getTimeRemaining());
     }
 
@@ -160,7 +160,7 @@ class GameTest {
         // Test that getPlayers returns the actual list
         game.addPlayer("Player1");
         assertEquals(1, game.getPlayers().size());
-        
+
         // Verify it's the same list reference
         game.getPlayers().add("Player2");
         assertEquals(2, game.getPlayers().size());

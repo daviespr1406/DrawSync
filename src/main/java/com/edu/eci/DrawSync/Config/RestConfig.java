@@ -1,4 +1,4 @@
-package com.edu.eci.DrawSync.Config;
+package com.edu.eci.DrawSync.config;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -10,17 +10,15 @@ public class RestConfig {
 
     private final BearerTokenInterceptor tokenInterceptor;
 
-    
     public RestConfig(BearerTokenInterceptor tokenInterceptor) {
         this.tokenInterceptor = tokenInterceptor;
     }
 
     @Bean
-    RestTemplate restTemplate(RestTemplateBuilder builder){
+    RestTemplate restTemplate(RestTemplateBuilder builder) {
         return builder
-        .additionalInterceptors(tokenInterceptor)
-        .build();
+                .additionalInterceptors(tokenInterceptor)
+                .build();
     }
 
 }
-
