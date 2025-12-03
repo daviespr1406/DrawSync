@@ -1,4 +1,4 @@
-package com.edu.eci.DrawSync.config;
+package com.edu.eci.DrawSync.Config;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;

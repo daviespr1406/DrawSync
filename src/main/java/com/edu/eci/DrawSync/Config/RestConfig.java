@@ -1,4 +1,4 @@
-package com.edu.eci.DrawSync.config;
+package com.edu.eci.DrawSync.Config;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;

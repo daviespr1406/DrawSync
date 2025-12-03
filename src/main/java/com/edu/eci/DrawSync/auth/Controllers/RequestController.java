@@ -1,6 +1,6 @@
 package com.edu.eci.DrawSync.auth.Controllers;
 
-import com.edu.eci.DrawSync.config.TokenProvider;
+import com.edu.eci.DrawSync.Config.TokenProvider;
 import com.edu.eci.DrawSync.auth.Services.RequestService;
 import com.edu.eci.DrawSync.auth.model.DTO.Response.ResponseToken;
 import com.edu.eci.DrawSync.auth.model.DTO.Request.VerifyRequest;
