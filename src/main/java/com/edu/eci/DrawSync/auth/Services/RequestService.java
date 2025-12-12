@@ -50,24 +50,29 @@ public class RequestService {
         body.add("grant_type", "authorization_code");
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
-        body.add("redirect_uri", request.getRedirectUri());
+        String redirectUri = request.getRedirectUri();
+        System.out.println("RequestService: Using Redirect URI for Token Exchange: [" + redirectUri + "]");
+        body.add("redirect_uri", redirectUri);
         body.add("code", code);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(body,
                 headers);
 
-        ResponseToken response = restTemplate.postForEntity(baseUrl + "/oauth2/token", request, ResponseToken.class)
-                .getBody();
-
-        String username = extractUsernameFromIdToken(response.id_token());
-
-        return new ResponseToken(
-                response.access_token(),
-                response.expires_in(),
-                response.token_type(),
-                response.refresh_token(),
-                response.id_token(),
-                username);
+        try {
+            ResponseToken response = restTemplate.postForEntity(baseUrl + "/oauth2/token", request, ResponseToken.class)
+                    .getBody();
+            return new ResponseToken(
+                    response.access_token(),
+                    response.expires_in(),
+                    response.token_type(),
+                    response.refresh_token(),
+                    response.id_token(),
+                    extractUsernameFromIdToken(response.id_token()));
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            System.err.println("RequestService: Token Exchange Failed. Status: " + e.getStatusCode());
+            System.err.println("RequestService: Response Body: " + e.getResponseBodyAsString());
+            throw e;
+        }
     }
 
     public ResponseToken login(LoginRequest loginRequest) {
