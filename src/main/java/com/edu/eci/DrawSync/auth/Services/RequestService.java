@@ -51,7 +51,10 @@ public class RequestService {
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
         String redirectUri = request.getRedirectUri();
-        System.out.println("RequestService: Using Redirect URI for Token Exchange: [" + redirectUri + "]");
+        if (redirectUri != null && redirectUri.endsWith("/")) {
+            redirectUri = redirectUri.substring(0, redirectUri.length() - 1);
+        }
+        System.err.println("RequestService: Using Redirect URI for Token Exchange: [" + redirectUri + "]");
         body.add("redirect_uri", redirectUri);
         body.add("code", code);
 
