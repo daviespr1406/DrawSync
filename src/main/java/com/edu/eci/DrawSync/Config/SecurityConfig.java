@@ -51,11 +51,27 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Allow any origin (supports credentials via allowedOriginPatterns)
-        config.setAllowedOriginPatterns(List.of("*"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
+        // ✅ IMPORTANTE: Permitir tanto Vercel como localhost
+        config.setAllowedOrigins(List.of(
+                "https://draw-sync-front.vercel.app",
+                "http://localhost:3000",
+                "http://localhost:5173" // Vite usa puerto 5173 por defecto
+        ));
+
+        config.setAllowedMethods(List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "OPTIONS",
+                "PATCH"));
+
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
+
+        // Permitir que el navegador cachee la respuesta preflight por 1 hora
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
