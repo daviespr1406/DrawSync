@@ -8,6 +8,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.http.HttpMethod;
 
 import java.util.List;
 
@@ -30,6 +31,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/request/**").permitAll()
                         // Health check
                         .requestMatchers("/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/").permitAll()
                         // Public endpoints - games
                         .requestMatchers("/api/games/available").permitAll()
                         .requestMatchers("/api/games/recent/**").permitAll()
