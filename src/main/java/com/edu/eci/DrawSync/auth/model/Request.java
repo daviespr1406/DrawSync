@@ -5,22 +5,27 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * The {@code Request} class is a Spring component that encapsulates configuration properties
- * and a {@link RestTemplate} instance for making HTTP requests. It retrieves the base URL,
- * client ID, and client secret from application properties using the {@code @Value} annotation.
+ * The {@code Request} class is a Spring component that encapsulates
+ * configuration properties
+ * and a {@link RestTemplate} instance for making HTTP requests. It retrieves
+ * the base URL,
+ * client ID, and client secret from application properties using the
+ * {@code @Value} annotation.
  * <p>
- * This class provides getter methods for accessing these configuration values and the
+ * This class provides getter methods for accessing these configuration values
+ * and the
  * {@link RestTemplate} instance.
  * </p>
  *
  * <p>
  * Example usage:
+ * 
  * <pre>
- *     @Autowired
- *     private Request request;
- *     
- *     String baseUrl = request.getBaseUrl();
- *     RestTemplate restTemplate = request.getRestTemplate();
+ * @Autowired
+ * private Request request;
+ * 
+ * String baseUrl = request.getBaseUrl();
+ * RestTemplate restTemplate = request.getRestTemplate();
  * </pre>
  * </p>
  *
@@ -38,6 +43,8 @@ public class Request {
     @Value("${client.secret}")
     private String clientSecret;
 
+    @Value("${client.redirect-uri}")
+    private String redirectUri;
 
     public String getBaseUrl() {
         return baseUrl;
@@ -49,5 +56,9 @@ public class Request {
 
     public String getClientSecret() {
         return clientSecret;
+    }
+
+    public String getRedirectUri() {
+        return redirectUri;
     }
 }

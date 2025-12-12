@@ -50,7 +50,7 @@ public class RequestService {
         body.add("grant_type", "authorization_code");
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
-        body.add("redirect_uri", "http://localhost:3000");
+        body.add("redirect_uri", request.getRedirectUri());
         body.add("code", code);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(body,
