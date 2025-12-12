@@ -50,11 +50,15 @@ public class RequestService {
         body.add("grant_type", "authorization_code");
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
+
+        // ✅ FIX: NO modificar el redirect_uri - usar exactamente como está configurado
+        // El redirect_uri DEBE coincidir EXACTAMENTE con el usado en /oauth2/authorize
         String redirectUri = request.getRedirectUri();
-        if (redirectUri != null && redirectUri.endsWith("/")) {
-            redirectUri = redirectUri.substring(0, redirectUri.length() - 1);
-        }
+
         System.err.println("RequestService: Using Redirect URI for Token Exchange: [" + redirectUri + "]");
+        System.err.println("RequestService: Client ID: [" + clientId + "]");
+        System.err.println("RequestService: Code: [" + code + "]");
+
         body.add("redirect_uri", redirectUri);
         body.add("code", code);
 
@@ -74,6 +78,7 @@ public class RequestService {
         } catch (org.springframework.web.client.HttpClientErrorException e) {
             System.err.println("RequestService: Token Exchange Failed. Status: " + e.getStatusCode());
             System.err.println("RequestService: Response Body: " + e.getResponseBodyAsString());
+            System.err.println("RequestService: Redirect URI used: [" + redirectUri + "]");
             throw e;
         }
     }
