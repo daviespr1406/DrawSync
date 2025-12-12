@@ -28,6 +28,9 @@ public class SecurityConfig {
                         // Public endpoints - authentication
                         .requestMatchers("/api/auth/users/**").permitAll()
                         .requestMatchers("/api/auth/request/**").permitAll()
+                        // Public endpoints - games
+                        .requestMatchers("/api/games/available").permitAll()
+                        .requestMatchers("/api/games/recent/**").permitAll()
                         // Public endpoints - WebSocket
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/queue/**").permitAll()

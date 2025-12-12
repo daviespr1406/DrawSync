@@ -94,13 +94,7 @@ public class RequestService {
 
         try {
             InitiateAuthResponse authResponse = cognitoClient.initiateAuth(authRequest);
-
-            // For direct login, we might not get a full ID token with all attributes
-            // immediately depending on scopes,
-            // but usually we do. We can try to extract username from it, or fallback to the
-            // email used for login.
-            // However, for consistency, let's try to extract from ID token if present.
-            String username = loginRequest.getEmail(); // Fallback
+            String username = loginRequest.getEmail();
             if (authResponse.authenticationResult().idToken() != null) {
                 try {
                     username = extractUsernameFromIdToken(authResponse.authenticationResult().idToken());
