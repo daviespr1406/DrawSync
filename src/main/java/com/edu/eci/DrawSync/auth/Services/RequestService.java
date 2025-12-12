@@ -55,9 +55,15 @@ public class RequestService {
         // El redirect_uri DEBE coincidir EXACTAMENTE con el usado en /oauth2/authorize
         String redirectUri = request.getRedirectUri();
 
-        System.err.println("RequestService: Using Redirect URI for Token Exchange: [" + redirectUri + "]");
-        System.err.println("RequestService: Client ID: [" + clientId + "]");
-        System.err.println("RequestService: Code: [" + code + "]");
+        // ✅ AGREGAR ESTOS LOGS
+        System.err.println("=== DEBUG TOKEN EXCHANGE ===");
+        System.err.println("Code received: " + code);
+        System.err.println("Redirect URI being sent: [" + redirectUri + "]");
+        System.err.println("Redirect URI length: " + redirectUri.length());
+        System.err.println("Redirect URI ends with /: " + redirectUri.endsWith("/"));
+        System.err.println("Base URL: " + baseUrl);
+        System.err.println("Client ID: " + clientId);
+        System.err.println("===========================");
 
         body.add("redirect_uri", redirectUri);
         body.add("code", code);
